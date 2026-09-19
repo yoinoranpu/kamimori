@@ -46,7 +46,7 @@ export const SKILL_NODES = [
   // --- 祓(基本の札の強化を極めた先)。加護を持つ敵(第3章〜)への切り札 ---
   { id: 'harai_unlock', group: 'unlock', name: '祓の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'harai_dmg', group: 'stat', name: '祓の札の強化', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'harai_unlock' }] },
-  { id: 'harai_ward', group: 'ability', name: '祓の強化:加護を剥がす時間が延びる', maxTier: 1, costs: [30], requires: [{ id: 'harai_unlock' }] },
+  { id: 'harai_ward', group: 'ability', name: '祓の強化:シールドへのダメージが増える', maxTier: 1, costs: [30], requires: [{ id: 'harai_unlock' }] },
 
   // --- 宝珠(章ボス撃破報酬)を強くするノード ---
   { id: 'relic_choice', group: 'unlock', name: '宝珠の選択肢が1つ増える', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },

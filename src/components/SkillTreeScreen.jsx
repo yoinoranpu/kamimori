@@ -81,7 +81,7 @@ function missingRequirementNames(skillState, node) {
     })
 }
 
-export default function SkillTreeScreen({ skillState, onUnlock, onStartRun }) {
+export default function SkillTreeScreen({ skillState, onUnlock, onStartRun, defaultMessage }) {
   const allNodes = buildNodeList()
   const visibleIds = computeVisibleNodeIds(skillState)
   const nodes = allNodes.filter((n) => visibleIds.has(n.id))
@@ -557,6 +557,7 @@ export default function SkillTreeScreen({ skillState, onUnlock, onStartRun }) {
           message={
             unlockError ||
             (selectedId && getNode(selectedId) ? nodeMessage(getNode(selectedId)) : null) ||
+            defaultMessage ||
             '画面をドラッグすると全体を見渡せるよ。金色の縁取りのノードは長押しして解放してね。'
           }
           isError={!!unlockError}

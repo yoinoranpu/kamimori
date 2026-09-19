@@ -30,7 +30,7 @@ function describeEnemy(def) {
   if (weak.length) parts.push(`${weak.map(nameOf).join('と')}が効くよ`)
   if (immune.length) parts.push(`${immune.map(nameOf).join('と')}はほぼ効かないよ`)
   else if (resist.length) parts.push(`${resist.map(nameOf).join('と')}は効きにくいよ`)
-  if (def.ward) parts.push('加護持ちだから、祓の札で守りを剥がしてね')
+  if (def.ward) parts.push('シールドを張っているよ。祓の札なら3倍削れるよ')
   // 風・氷が「効かない」と既に言っている時は、吹き飛ばし/鈍足無効の重ね書きを省く
   if (def.knockbackImmune && !immune.includes('wind')) parts.push('風で吹き飛ばせないよ')
   if (def.slowImmune && !immune.includes('ice')) parts.push('氷で鈍らせられないよ')
@@ -51,6 +51,11 @@ export function describeWave(chapter, turn, enemyCountMult = 1) {
     .slice(0, 2)
   if (notable.length === 0) return null
   return `今ターンは${notable.map((d) => d.name).join('と')}が来るよ。${notable.map(describeEnemy).join('')}`
+}
+
+// 今ターンにシールド(加護)持ちの敵が出るか
+export function waveHasWard(chapter, turn, enemyCountMult = 1) {
+  return getWaveComposition(turn, enemyCountMult, chapter).spawns.some((s) => ENEMY_TYPES[s.type].ward)
 }
 
 // 選んでいる札が、今ターンの敵に対して有利か不利かを一言で返す(無関係ならnull)

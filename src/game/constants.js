@@ -100,7 +100,7 @@ export const OFUDA_TYPES = {
     color: '#f2f0f7',
     accent: '#8a6fc4',
     label: '祓',
-    flavor: '敵の加護を打ち払うよ。守りに包まれた敵には大ダメージ、剥がした後は他の札も通りやすくなるんだ。',
+    flavor: '敵のシールド(加護)を打ち払うよ。シールドには他の札の3倍の勢いで効くから、守りを固めた敵にぴったりなんだ。',
   },
   cannon: {
     id: 'cannon',

@@ -5,7 +5,9 @@ import SkillTreeScreen from './components/SkillTreeScreen.jsx'
 import ResultScreen from './components/ResultScreen.jsx'
 import TurnAnnouncement from './components/TurnAnnouncement.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
-import { describeWave, armedHint } from './game/briefing.js'
+import { describeWave, armedHint, waveHasWard } from './game/briefing.js'
+import { isTutorialDone, markTutorialDone, resetTutorial, tutorialSelectMessage, TREE_FIRST_MESSAGE } from './game/tutorial.js'
+import SaveManager from './components/SaveManager.jsx'
 import { createRunState, placeTower, startWave, startChapter } from './game/engine.js'
 import { drawCandidates } from './game/candidates.js'
 import { loadSkillState, saveSkillState, getEffects, unlockNode } from './game/skillTree.js'
@@ -97,9 +99,16 @@ export default function App() {
   // その周回で章ボスを倒して得た御霊(周回の終わりにまとめて所持へ加算する)
   const runSpiritRef = useRef(0)
   const [muted, setMutedState] = useState(() => isMuted())
+  const [tutorialDone, setTutorialDone] = useState(() => isTutorialDone())
+  const finishTutorial = () => {
+    markTutorialDone()
+    setTutorialDone(true)
+  }
   // スキル「二刀流」「目利き」の反映
   const pickMax = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0)
-  const dealCandidates = (favored = null) => drawCandidates(effects.unlockedOfuda, favored, CANDIDATE_COUNT + (effects.extraCandidates ?? 0))
+  // 配る先のターンにシールド持ちの敵が出るなら、解放済みの祓の札を必ず候補に入れる(引けずに詰むのを防ぐ)
+  const dealCandidates = (favored = null, forChapter = chapter, forTurn = turn) =>
+    drawCandidates(effects.unlockedOfuda, favored, CANDIDATE_COUNT + (effects.extraCandidates ?? 0), waveHasWard(forChapter, forTurn, effects.enemyCountMult ?? 1) ? ['harai'] : [])
 
   // 最初の画像読み込みが終わるまでローディング画面を出し、図形フォールバックが
   // 一瞬見えてしまう雑な瞬間を隠す
@@ -176,7 +185,7 @@ export default function App() {
     setChapter(1)
     seenSpecialTypesRef.current = new Set()
     setTurn(1)
-    setCandidates(dealCandidates())
+    setCandidates(dealCandidates(null, 1, 1))
     setArmedIndex(null)
     setPlacedIndices(new Set())
     setWaveHud({ kills: 0, currency: 0, enemiesLeft: 0, waveCleared: false, outcome: null, currentBatch: -1, totalBatches: 0, chapterCleared: false })
@@ -249,8 +258,9 @@ export default function App() {
   const goToNextTurn = () => {
     handledMilestoneRef.current = false
     const nextTurn = turn + 1
+    if (nextTurn >= 3 && !tutorialDone) finishTutorial() // 初回の案内は最初の2ターンだけ
     setTurn(nextTurn)
-    setCandidates(dealCandidates(getFavoredOfuda(runRelics)))
+    setCandidates(dealCandidates(getFavoredOfuda(runRelics), chapter, nextTurn))
     setArmedIndex(null)
     setPlacedIndices(new Set())
     setScreen('select')
@@ -334,6 +344,7 @@ export default function App() {
   function finishRun(state, retired) {
     {
       handledOutcomeRef.current = true
+      if (!tutorialDone) finishTutorial()
       if (!retired) {
         if (state.outcome === 'cleared') playWaveClear()
         else playDefeat()
@@ -385,7 +396,7 @@ export default function App() {
     handledChapterRef.current = false
     setChapter(next)
     setTurn(1)
-    setCandidates(dealCandidates(getFavoredOfuda(relicsNow)))
+    setCandidates(dealCandidates(getFavoredOfuda(relicsNow), next, 1))
     setArmedIndex(null)
     setPlacedIndices(new Set())
     setWaveHud({ kills: state.kills, currency: state.currencyThisRun, enemiesLeft: 0, waveCleared: false, outcome: null, currentBatch: -1, totalBatches: 0, chapterCleared: false, milestoneCleared: false })
@@ -406,7 +417,7 @@ export default function App() {
       handledMilestoneRef.current = false
       const nextTurn = turn + 1
       setTurn(nextTurn)
-      setCandidates(dealCandidates(getFavoredOfuda(nextRelics)))
+      setCandidates(dealCandidates(getFavoredOfuda(nextRelics), chapter, nextTurn))
       setArmedIndex(null)
       setPlacedIndices(new Set())
       setScreen('select')
@@ -444,7 +455,21 @@ export default function App() {
 
       {screen === 'title' && (
         <div key="title" className="screen-transition">
-          <SkillTreeScreen skillState={skillState} onUnlock={handleUnlockNode} onStartRun={startRun} />
+          <SkillTreeScreen
+            skillState={skillState}
+            onUnlock={handleUnlockNode}
+            onStartRun={startRun}
+            defaultMessage={!tutorialDone && skillState.currency === 0 && Object.keys(skillState.nodeTiers).length <= 1 ? TREE_FIRST_MESSAGE : undefined}
+          />
+          <SaveManager
+            skillState={skillState}
+            onReplace={(next) => updateSkillState(next)}
+            onReset={() => {
+              updateSkillState({ currency: 0, spirit: 0, nodeTiers: { root: 1 } })
+              resetTutorial()
+              setTutorialDone(false)
+            }}
+          />
         </div>
       )}
 
@@ -574,6 +599,8 @@ export default function App() {
                 guideMessage={
                   placementError
                     ? '近すぎて置けないよ。もう少し離してみて。'
+                    : !tutorialDone && chapter === 1 && turn <= 2
+                      ? tutorialSelectMessage({ turn, armed: armedIndex != null, allPlaced: placedIndices.size >= pickMax })
                     : armedIndex != null
                       ? [OFUDA_TYPES[candidates[armedIndex]].flavor, armedHint(candidates[armedIndex], chapter, turn, effects.enemyCountMult ?? 1)].filter(Boolean).join(' ')
                       : `${describeWave(chapter, turn, effects.enemyCountMult ?? 1) ?? ''}あと${pickMax - placedIndices.size}枚置けるよ。札を選んでフィールドに置いてね。`

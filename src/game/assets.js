@@ -3,8 +3,10 @@
 // (これをやらないと、Artifactのようにルート以外のパスへ配置した時にリンク切れになる)。
 const BASE = import.meta.env?.BASE_URL ?? ''
 
+// 画像は tools/optimize_images.py でWebPに変換して配信する。コード上の名前は .png/.jpg のままにして、
+// ここで .webp に読み替える(新しい画像は `npm run optimize` で変換してから使う)。
 function p(path) {
-  return `${BASE}${path}`
+  return `${BASE}${path.replace(/\.(png|jpe?g)$/i, '.webp')}`
 }
 
 const cache = new Map()
@@ -144,6 +146,11 @@ export const ASSET_PATHS = {
   // フィールド背景は和紙(下)+石畳(上)の2枚重ね
   fieldPaper: p('assets/field/field_paper.png'),
   fieldPath: p('assets/field/bg_field_paper.png'),
+  // 章ごとの専用背景(無ければ第1章の和紙+石畳に色を重ねて代用する)
+  chapterField: {
+    2: { paper: p('assets/field/field_paper_ch2.png'), path: p('assets/field/bg_field_path_ch2.png') },
+    3: { paper: p('assets/field/field_paper_ch3.png'), path: p('assets/field/bg_field_path_ch3.png') },
+  },
   torii: p('assets/field/torii.png'),
   honden: p('assets/field/honden.png'),
 }

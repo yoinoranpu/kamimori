@@ -180,8 +180,9 @@ function spawnEnemy(state, typeId, xOverride, yOverride, hpMult = 1) {
     poisonDps: 0,
     curseTimeLeft: 0,
     curseBonus: 0,
-    wardLeft: def.ward ? 1 : 0, // 加護。祓の札で剥がすまでダメージを大きく軽減する
-    wardBrokenLeft: 0,
+    // シールド(加護): 本体のHPより先に削られる追加のHP。どの札でも削れるが、祓の札なら3倍削れる。
+    shield: def.ward ? hp * SHIELD_RATIO : 0,
+    maxShield: def.ward ? hp * SHIELD_RATIO : 0,
     lastDir: { dx: 1, dy: 0 },
     avoidWallId: null,
     avoidDir: null,
@@ -237,17 +238,32 @@ function computeSupportMultipliers(towers, effects) {
   return result
 }
 
-// 敵1体に対するダメージ倍率(耐性/弱点 × 加護 × 呪い)。加護を剥がす副作用もここで処理する。
+// 敵1体に対するダメージ倍率(耐性/弱点 × 呪い)。
 function hitMultiplier(target, kindId, def, effects) {
   const tdef = ENEMY_TYPES[target.type]
   let mult = affinityMult(tdef, kindId, effects)
-  const warded = target.wardLeft > 0 && target.wardBrokenLeft <= 0
-  if (warded) mult *= kindId === 'harai' ? 2 : 0.4
-  if (kindId === 'harai' && target.wardLeft > 0) {
-    target.wardBrokenLeft = (def.wardBreakSeconds ?? 5) * (effects?.wardBreakMult ?? 1)
-  }
   if (target.curseTimeLeft > 0) mult *= 1 + target.curseBonus
   return mult
+}
+
+// シールド(加護)を持つ敵へのダメージ処理。シールドが残っている間はそちらを先に削る。
+// 祓の札はシールドに対して3倍の効率(スキル/宝珠でさらに上がる)。余ったぶんは本体のHPへ。
+const SHIELD_RATIO = 0.35 // 本体HPに対するシールドの量
+const SHIELD_HARAI_MULT = 3
+function hurt(e, amount, kind, effects) {
+  if (!(amount > 0)) return
+  if (e.shield > 0) {
+    const mult = kind === 'harai' ? SHIELD_HARAI_MULT * (effects?.wardBreakMult ?? 1) : 1
+    const absorbed = amount * mult
+    if (absorbed <= e.shield) {
+      e.shield -= absorbed
+      return
+    }
+    e.hp -= (absorbed - e.shield) / mult
+    e.shield = 0
+    return
+  }
+  e.hp -= amount
 }
 
 function nearestEnemyExcluding(state, from, excluded, maxDist) {
@@ -278,13 +294,12 @@ function applyImpact(state, kindId, def, target, effects) {
   const isAfflicted = target.burnTimeLeft > 0 || target.slowTimeLeft > 0 || target.knockbackTimeLeft > 0
   let damage = def.checkStatusBonus && isAfflicted ? def.damage * STATUS_BONUS_MULT : def.damage
   const aff = affinityMult(targetDef, kindId, effects)
-  // 加護: 守りが生きている間は祓以外のダメージを大きく軽減。祓は倍のダメージで守りを剥がす。
   // 呪い: 呪われている間は受けるダメージが増える。
   damage *= hitMultiplier(target, kindId, def, effects)
 
   switch (kindId) {
     case 'fire': {
-      target.hp -= damage
+      hurt(target, damage, kindId, effects)
       if (def.hasSplash) {
         // 強化済み: 着弾点の周囲にいる敵全員(自分自身を含む)に炎上を広げる
         for (const e of state.enemies) {
@@ -302,7 +317,7 @@ function applyImpact(state, kindId, def, target, effects) {
       break
     }
     case 'wind': {
-      target.hp -= damage
+      hurt(target, damage, kindId, effects)
       // 既にノックバック中、または直後のクールダウン中の相手に重ねがけすると
       // (特に風の札を複数配置した時に)別々のタワーがバトンタッチしながら
       // 永久に近い足止めをしてしまうため、免疫時間が切れるまで再付与しない。
@@ -314,7 +329,7 @@ function applyImpact(state, kindId, def, target, effects) {
       break
     }
     case 'ice': {
-      target.hp -= damage
+      hurt(target, damage, kindId, effects)
       if (!targetDef.slowImmune) {
         target.slowTimeLeft = def.slow.duration
         target.slowRatio = Math.min(0.85, def.slow.ratio + (effects?.iceSlowRatioAdd ?? 0))
@@ -324,7 +339,7 @@ function applyImpact(state, kindId, def, target, effects) {
     case 'sniper': {
       // 破魔矢: ボス・中ボスへの特攻(スキルで解放)
       const big = targetDef.isBoss || targetDef.isMidBoss
-      target.hp -= big ? damage * (effects?.sniperBossMult ?? 1) : damage
+      hurt(target, big ? damage * (effects?.sniperBossMult ?? 1) : damage, kindId, effects)
       break
     }
     case 'cannon': {
@@ -336,7 +351,7 @@ function applyImpact(state, kindId, def, target, effects) {
         const d = Math.hypot(e.x - target.x, e.y - target.y)
         if (d > radius) continue
         const falloff = 1 - 0.4 * (d / radius)
-        e.hp -= def.damage * (def.checkStatusBonus && isAfflicted ? STATUS_BONUS_MULT : 1) * falloff * hitMultiplier(e, kindId, def, effects)
+        hurt(e, def.damage * (def.checkStatusBonus && isAfflicted ? STATUS_BONUS_MULT : 1) * falloff * hitMultiplier(e, kindId, def, effects), kindId, effects)
         e.hitFlash = Math.max(e.hitFlash, 0.2)
         // 爆風の押し戻し(スキルで解放)。ボスや重い敵は動かない
         if (effects?.cannonKnockback) {
@@ -352,14 +367,14 @@ function applyImpact(state, kindId, def, target, effects) {
       break
     }
     case 'poison': {
-      target.hp -= damage
+      hurt(target, damage, kindId, effects)
       const scale = def.damage / (OFUDA_TYPES.poison.damage || 1)
       target.poisonDps = Math.max(target.poisonDps, def.poisonDps * scale)
       target.poisonTimeLeft = def.poisonDuration
       break
     }
     case 'thunder': {
-      target.hp -= damage
+      hurt(target, damage, kindId, effects)
       // 雷の連鎖: 近くの敵へ最大N回、少しずつ威力を落としながら飛び移る
       const visited = [target]
       let current = target
@@ -369,7 +384,7 @@ function applyImpact(state, kindId, def, target, effects) {
         const next = nearestEnemyExcluding(state, current, visited, def.chainRange)
         if (!next) break
         chainDamage *= def.chainDecay
-        next.hp -= chainDamage * hitMultiplier(next, kindId, def, effects)
+        hurt(next, chainDamage * hitMultiplier(next, kindId, def, effects), kindId, effects)
         next.hitFlash = Math.max(next.hitFlash, 0.2)
         state.fx.push({ type: 'lightning', x1: current.x, y1: current.y, x2: next.x, y2: next.y, timeLeft: 0.25, maxTime: 0.25 })
         visited.push(next)
@@ -378,13 +393,13 @@ function applyImpact(state, kindId, def, target, effects) {
       break
     }
     case 'curse': {
-      target.hp -= damage
+      hurt(target, damage, kindId, effects)
       target.curseTimeLeft = def.curseDuration * (effects?.curseLong ? 1.8 : 1)
       target.curseBonus = Math.max(target.curseBonus, effects?.curseBonus ?? 0.25)
       break
     }
     default: {
-      target.hp -= damage
+      hurt(target, damage, kindId, effects)
     }
   }
 }
@@ -424,7 +439,7 @@ function updateMinions(state, dt, effects) {
     }
     m.facing = dx >= 0 ? 1 : -1
     if (target && dist <= reach + 6) {
-      target.hp -= m.dps * dt * hitMultiplier(target, 'shiki', sdef, effects)
+      hurt(target, m.dps * dt * hitMultiplier(target, 'shiki', sdef, effects), 'shiki', effects)
       m.hp -= MINION_CONTACT_DAMAGE * dt
       m.attacking = true
     } else {
@@ -531,19 +546,18 @@ export function step(state, dt, skillEffects) {
     }
 
     if (e.hitFlash > 0) e.hitFlash -= dt
-    if (e.wardBrokenLeft > 0) e.wardBrokenLeft -= dt
 
     if (e.curseTimeLeft > 0) e.curseTimeLeft -= dt
     const curseMul = e.curseTimeLeft > 0 ? 1 + e.curseBonus : 1
     if (e.poisonTimeLeft > 0) {
       // 毒: 効いている時間が長いほど最大5倍まで強くなる
       e.poisonAge += dt
-      e.hp -= e.poisonDps * (1 + Math.min(e.poisonAge * 0.5, 4)) * dt * curseMul
+      hurt(e, e.poisonDps * (1 + Math.min(e.poisonAge * 0.5, 4)) * dt * curseMul, 'dot', effects)
       e.poisonTimeLeft -= dt
       if (e.poisonTimeLeft <= 0) e.poisonAge = 0
     }
     if (e.burnTimeLeft > 0) {
-      e.hp -= e.burnDps * dt * curseMul
+      hurt(e, e.burnDps * dt * curseMul, 'dot', effects)
       e.burnTimeLeft -= dt
       e.hitFlash = Math.max(e.hitFlash, 0.1) // 継続ダメージも軽く光らせる
     }
@@ -729,7 +743,7 @@ export function step(state, dt, skillEffects) {
         // 本殿への残距離だけで選ぶと、鎌鼬のような硬くて速い敵に張り付いたまま
         // 倒しきれず射程外へ逃げられ、その間に雑魚が無傷で素通りしてしまうため。
         // 倒しやすさが同程度の場合のみ、本殿への残距離が短い敵を優先する。
-        const shotsNeeded = Math.ceil(e.hp / def.damage)
+        const shotsNeeded = Math.ceil((e.hp + (e.shield ?? 0)) / def.damage)
         const distToGoal = Math.hypot(e.x - FIELD.hondenX, e.y - FIELD.hondenY)
         // ノックバック中の敵は動けるようになるまで後回し(でないと永久ハメになりうる)
         const knockbackPenalty = e.knockbackTimeLeft > 0 ? 1e8 : 0

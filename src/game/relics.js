@@ -90,7 +90,7 @@ export const RELIC_POOL = [
   { id: 'earth_master', category: 'stat', ofuda: 'earth', name: '岩戸の宝珠', description: '土壁のHP+60%' },
   { id: 'wind_master', category: 'rule', ofuda: 'wind', name: '颪の宝珠', description: '風の札のダメージ+50%、吹き飛ばし時間+60%' },
   { id: 'ice_master', category: 'rule', ofuda: 'ice', name: '霜降の宝珠', description: '氷の札のダメージ+50%、鈍足の強さ+25%' },
-  { id: 'harai_master', category: 'rule', ofuda: 'harai', name: '清祓の宝珠', description: '祓の札のダメージ+50%、加護を剥がす時間が2.5倍' },
+  { id: 'harai_master', category: 'rule', ofuda: 'harai', name: '清祓の宝珠', description: '祓の札のダメージ+50%、シールドへのダメージが2.5倍' },
   { id: 'support_master', category: 'stat', ofuda: 'support', name: '結縁の宝珠', description: '支援効果が1段階強化される' },
   { id: 'cannon_master', category: 'stat', ofuda: 'cannon', name: '轟の宝珠', description: '大筒の札のダメージ+40%、爆発範囲+30%' },
   { id: 'poison_master', category: 'rule', ofuda: 'poison', name: '瘴気の宝珠', description: '毒の札のダメージ+50%、毒の感染が未解放でも常に発動する' },

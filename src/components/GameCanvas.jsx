@@ -81,17 +81,19 @@ function drawStonePath(ctx, img, width, height) {
 function drawField(ctx, turn, chapter = 1) {
   const { width, height, toriiX, toriiY, hondenX, hondenY } = FIELD
 
-  const paper = getImage(ASSET_PATHS.fieldPaper)
+  const chapterArt = ASSET_PATHS.chapterField?.[chapter]
+  const chapterPaper = chapterArt ? getImage(chapterArt.paper) : null
+  const paper = chapterPaper ?? getImage(ASSET_PATHS.fieldPaper)
   if (paper) {
     ctx.drawImage(paper, 0, 0, width, height)
   } else {
     ctx.fillStyle = '#efe4c8'
     ctx.fillRect(0, 0, width, height)
   }
-  const path = getImage(ASSET_PATHS.fieldPath)
+  const path = (chapterArt && getImage(chapterArt.path)) || getImage(ASSET_PATHS.fieldPath)
   if (path) drawStonePath(ctx, path, width, height)
-  // 章ごとの空気感(雪山は青白く、黄泉は暗い紫に)。専用背景画像ができるまでの仮の色付け
-  const tint = getChapter(chapter).tint
+  // 章ごとの空気感(雪山は青白く、黄泉は暗い紫に)。専用の背景画像がある章では色を重ねない。
+  const tint = chapterPaper ? null : getChapter(chapter).tint
   if (tint) {
     ctx.fillStyle = tint
     ctx.fillRect(0, 0, width, height)
@@ -277,6 +279,40 @@ function drawEnemies(ctx, enemies, animTime) {
       }
     }
 
+    // 毒・呪いのエフェクトはモンスターの背後に描く(スプライトを隠さないため)
+    const poisonImg = e.poisonTimeLeft > 0 ? getImage(ASSET_PATHS.effectPoisonBubbles) : null
+    if (poisonImg) {
+      ctx.globalAlpha = 0.85
+      drawImageCentered(ctx, poisonImg, e.x, drawY, size * 1.3, size * 1.3)
+      ctx.globalAlpha = 1
+    } else if (e.poisonTimeLeft > 0) {
+      ctx.fillStyle = '#6e9b3a'
+      for (let i = 0; i < 3; i++) {
+        const ph = (animTime * 0.9 + i / 3 + e.id * 0.13) % 1
+        ctx.globalAlpha = 1 - ph
+        ctx.beginPath()
+        ctx.arc(e.x + (i - 1) * def.radius * 0.6, drawY - ph * def.radius * 1.6, 2.5 + i * 0.6, 0, Math.PI * 2)
+        ctx.fill()
+      }
+      ctx.globalAlpha = 1
+    }
+    const curseImg = e.curseTimeLeft > 0 ? getImage(ASSET_PATHS.effectCurseMark) : null
+    if (curseImg) {
+      drawImageCentered(ctx, curseImg, e.x, drawY - size / 2 - 12, 28, 28)
+    } else if (e.curseTimeLeft > 0) {
+      ctx.strokeStyle = '#a06ac8'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.arc(e.x, drawY - size / 2 - 12, 6, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(e.x - 4, drawY - size / 2 - 16)
+      ctx.lineTo(e.x + 4, drawY - size / 2 - 8)
+      ctx.moveTo(e.x + 4, drawY - size / 2 - 16)
+      ctx.lineTo(e.x - 4, drawY - size / 2 - 8)
+      ctx.stroke()
+    }
+
     // 吹き飛ばされている間は、押されている向きへ風のエフェクトを流す
     if (e.knockbackTimeLeft > 0 && e.knockbackDir) {
       const gustImg = getImage(ASSET_PATHS.effectWindGust)
@@ -324,7 +360,7 @@ function drawEnemies(ctx, enemies, animTime) {
     ctx.restore()
 
     // 加護: 守りが生きている間は薄い結界をまとう(祓で剥がされると消える)
-    if (e.wardLeft > 0 && e.wardBrokenLeft <= 0) {
+    if (e.shield > 0) {
       const wardImg = getImage(ASSET_PATHS.effectWardBarrier)
       if (wardImg) {
         ctx.globalAlpha = 0.8
@@ -342,39 +378,6 @@ function drawEnemies(ctx, enemies, animTime) {
     }
 
     // 毒: 緑の泡が立ち上る / 呪い: 頭上に紫の印
-    const poisonImg = e.poisonTimeLeft > 0 ? getImage(ASSET_PATHS.effectPoisonBubbles) : null
-    if (poisonImg) {
-      ctx.globalAlpha = 0.85
-      drawImageCentered(ctx, poisonImg, e.x, drawY, size * 1.3, size * 1.3)
-      ctx.globalAlpha = 1
-    } else if (e.poisonTimeLeft > 0) {
-      ctx.fillStyle = '#6e9b3a'
-      for (let i = 0; i < 3; i++) {
-        const ph = (animTime * 0.9 + i / 3 + e.id * 0.13) % 1
-        ctx.globalAlpha = 1 - ph
-        ctx.beginPath()
-        ctx.arc(e.x + (i - 1) * def.radius * 0.6, drawY - ph * def.radius * 1.6, 2.5 + i * 0.6, 0, Math.PI * 2)
-        ctx.fill()
-      }
-      ctx.globalAlpha = 1
-    }
-    const curseImg = e.curseTimeLeft > 0 ? getImage(ASSET_PATHS.effectCurseMark) : null
-    if (curseImg) {
-      drawImageCentered(ctx, curseImg, e.x, drawY - size / 2 - 12, 28, 28)
-    } else if (e.curseTimeLeft > 0) {
-      ctx.strokeStyle = '#a06ac8'
-      ctx.lineWidth = 2
-      ctx.beginPath()
-      ctx.arc(e.x, drawY - size / 2 - 12, 6, 0, Math.PI * 2)
-      ctx.stroke()
-      ctx.beginPath()
-      ctx.moveTo(e.x - 4, drawY - size / 2 - 16)
-      ctx.lineTo(e.x + 4, drawY - size / 2 - 8)
-      ctx.moveTo(e.x + 4, drawY - size / 2 - 16)
-      ctx.lineTo(e.x - 4, drawY - size / 2 - 8)
-      ctx.stroke()
-    }
-
     // 減速中は足元に凍結エフェクト
     if (e.slowTimeLeft > 0) {
       const frostImg = getImage(ASSET_PATHS.effectIceFrost)
@@ -396,6 +399,13 @@ function drawEnemies(ctx, enemies, animTime) {
       if (barY < 8) barY = Math.min(drawY + size / 2 + 6, FIELD.height - 8)
       const barX = Math.max(barW / 2 + 4, Math.min(FIELD.width - barW / 2 - 4, e.x))
       drawHpBar(ctx, barX, barY, barW, e.hp / e.maxHp)
+      if (e.maxShield > 0 && e.shield > 0) {
+        // シールド残量(HPバーの上に細い紫のバー)
+        ctx.fillStyle = 'rgba(0,0,0,0.45)'
+        ctx.fillRect(barX - barW / 2, barY - 8, barW, 3)
+        ctx.fillStyle = '#9d7fe0'
+        ctx.fillRect(barX - barW / 2, barY - 8, barW * (e.shield / e.maxShield), 3)
+      }
 
       if (def.isBoss) {
         ctx.strokeStyle = '#f2c14e'

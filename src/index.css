@@ -1,0 +1,421 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  /* 縦中央寄せ(align-items:center)だと、画面ごとにコンテンツの高さが変わった時に
+     再センタリングされてキャンバスの位置がガクッとズレて見える(ウェーブ開始直後、
+     カード選択UIが消えて短くなった瞬間など)。常に上詰めにして位置を安定させる。 */
+  align-items: flex-start;
+  justify-content: center;
+  background-color: #2b2620;
+  background-image: var(--url-page-bg);
+  background-repeat: repeat;
+  font-family: 'Yu Gothic', 'Hiragino Sans', sans-serif;
+  color: #f0e6d2;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  width: 100%;
+  max-width: 960px;
+  box-sizing: border-box;
+}
+
+/* 再生速度切り替えなど、小さなユーティリティボタン用の見た目(単色の下地のみ)。 */
+.ofuda-button {
+  font-family: 'Yu Gothic', 'Hiragino Sans', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #f0e6d2;
+  background: #3a3226;
+  border: 2px solid #6b5c42;
+  border-radius: 8px;
+  padding: 10px 18px;
+  cursor: pointer;
+}
+
+.ofuda-button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.ofuda-button--primary {
+  box-shadow: 0 0 0 2px #f2c14e, 0 0 10px rgba(242, 193, 78, 0.5);
+}
+
+/* 主要なCTAボタン(周回開始/スキルツリーへ戻る/ウェーブ開始/次のターンへ)専用。
+   絵馬(えま)モチーフの画像を実寸で使う(五角形の輪郭を持つ固定形状の絵なので、
+   9-sliceでは引き伸ばせない → 全ボタン共通の固定サイズ+background-imageで扱う)。
+   背景色は敷かない(五角形の外側=透明部分まで四角く塗ってしまうと絵馬の形が
+   活きないため。画像が無い間は背景無しの素の文字だけになる)。 */
+.ofuda-button--ema {
+  width: 250px;
+  max-width: 90vw;
+  aspect-ratio: 1122 / 554;
+  background-color: transparent;
+  background-image: var(--url-button-frame);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border: none;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 26px 14px;
+  font-size: 15px;
+}
+.ofuda-button--ema:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+/* フィールド(canvas)の外周を彩る額縁。この絵は上辺中央の鳥居・左右上部の狛犬・下部の花と
+   位置ごとに個別の意匠がある1枚絵で、9-sliceで角と辺を分離しようとすると角の意匠が辺に
+   はみ出して繰り返し表示されたり(角スライスが小さすぎる場合)、逆に透明な外周余白が
+   中央の穴側に食い込んで和紙との間に隙間が空いたり(角スライスが大きすぎる場合)して、
+   どちらにしても破綻することが分かった。フィールドの縦横比(960:540)が元画像の比率
+   (1100:666)にかなり近いことを利用し、素直に1枚の背景画像として全体を引き伸ばして
+   重ねる(スライス無し)。これなら鳥居・狛犬・花すべて元の配置のまま、ごくわずかな
+   伸縮だけで正しく収まる。 */
+.ofuda-field-frame {
+  background-image: var(--url-field-frame);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+/* スキルツリー/候補ピッカーの背景。画像が無い間はダークな下地色のまま。 */
+.ofuda-panel {
+  background-color: #241f1a;
+  background-image: var(--url-panel-texture);
+  background-repeat: repeat;
+}
+
+/* HUD帯(巻物)。左右の軸(巻かれた部分)だけ固定幅で残し、中央は高さいっぱいに
+   伸縮させる横長の3-slice(border-imageのtop/bottomスライスを0にして実現)。
+   これで幅がどれだけ変わっても巻物の見た目が歪まない。 */
+.ofuda-hud-panel {
+  position: relative;
+  background-color: #3a3226;
+  border-style: solid;
+  border-width: 0 34px;
+  border-image: var(--url-hud-panel) 0 11% fill / 0 34px stretch;
+}
+
+/* HUDの各数値をただのテキストではなく、丸みのあるバッジとして見せてゲームらしさを出す。
+   種類ごとに薄い色味を変えて、一目でどの数値か見分けやすくする。 */
+.hud-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  font-weight: bold;
+  white-space: nowrap;
+}
+.hud-stat--turn {
+  background: rgba(90, 70, 45, 0.16);
+  border-color: rgba(90, 70, 45, 0.3);
+}
+.hud-stat--kills {
+  background: rgba(165, 66, 58, 0.18);
+  border-color: rgba(165, 66, 58, 0.35);
+}
+.hud-stat--currency {
+  background: rgba(197, 148, 58, 0.25);
+  border-color: rgba(197, 148, 58, 0.45);
+}
+.hud-stat--enemies {
+  background: rgba(60, 45, 35, 0.2);
+  border-color: rgba(60, 45, 35, 0.32);
+}
+
+/* 巻物(HUD帯)の軸の左右に紙垂を垂らす彩り。レイアウトの高さには影響させない。 */
+.hud-shide {
+  position: absolute;
+  top: -4px;
+  width: 22px;
+  height: auto;
+  pointer-events: none;
+}
+.hud-shide--left {
+  left: 6px;
+}
+.hud-shide--right {
+  right: 6px;
+  transform: scaleX(-1);
+}
+
+/* 画面切り替え時、和紙を上から広げるようなイメージの演出 */
+@keyframes screen-unfurl {
+  from {
+    transform: scaleY(0.05);
+    opacity: 0;
+  }
+  60% {
+    transform: scaleY(1.03);
+    opacity: 1;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+.screen-transition {
+  transform-origin: top center;
+  animation: screen-unfurl 0.5s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-transition {
+    animation: none;
+  }
+}
+
+.ofuda-button {
+  transition: transform 0.08s ease-out, filter 0.08s ease-out;
+}
+.ofuda-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.ofuda-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* ターン開始時、デッキから配られるようにカードが上から降りてくる演出 */
+@keyframes card-deal {
+  from {
+    transform: rotate(var(--tilt, 0deg)) translateY(calc(-1 * var(--rise, 0px) - 200px)) scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(var(--tilt, 0deg)) translateY(calc(-1 * var(--rise, 0px)));
+    opacity: 1;
+  }
+}
+
+/* ローディング画面: お札が一枚、左右にひらひら揺れながら舞い降り続ける(ループ)。 */
+@keyframes loading-card-fall {
+  0% {
+    transform: translateY(-70px) translateX(0) rotate(-10deg) scaleX(1);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  25% {
+    transform: translateY(70px) translateX(20px) rotate(9deg) scaleX(0.82);
+  }
+  50% {
+    transform: translateY(150px) translateX(-16px) rotate(-7deg) scaleX(1);
+  }
+  75% {
+    transform: translateY(230px) translateX(18px) rotate(8deg) scaleX(0.82);
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(310px) translateX(0) rotate(-10deg) scaleX(1);
+    opacity: 0;
+  }
+}
+.loading-card-fall {
+  animation: loading-card-fall 2.8s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-card-fall {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* トランプの手札のような扇状レイアウト。--tilt/--riseはJS側で1枚ごとに計算して渡す。 */
+.candidate-card {
+  position: relative;
+  transform: rotate(var(--tilt, 0deg)) translateY(calc(-1 * var(--rise, 0px)));
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+.candidate-card:hover:not(:disabled) {
+  transform: rotate(var(--tilt, 0deg)) translateY(calc(-1 * var(--rise, 0px) - 10px));
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.35);
+  z-index: 5;
+}
+
+/* 案内キャラの吹き出し。チュートリアル文の代わりにここへ説明を出す。 */
+.guide-bubble {
+  position: relative;
+  background: #f5efe2;
+  color: #2b241d;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #ddcfb2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.guide-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 7px 6px 0;
+  border-style: solid;
+  border-color: #f5efe2 transparent transparent;
+}
+.guide-bubble--error {
+  background: #f6ddd6;
+  border-color: #e07a5f;
+  color: #7a2f1f;
+}
+.guide-bubble--error::after {
+  border-color: #f6ddd6 transparent transparent;
+}
+
+/* キャラを右下端、吹き出しをその左に並べる横並びレイアウト用。矢印をキャラ側(右)へ向ける。 */
+.guide-bubble--right::after {
+  bottom: auto;
+  left: auto;
+  right: -7px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 6px 0 6px 7px;
+  border-color: transparent transparent transparent #f5efe2;
+}
+.guide-bubble--right.guide-bubble--error::after {
+  border-color: transparent transparent transparent #f6ddd6;
+}
+
+/* 案内キャラは何もしていない間もふわふわ揺れ続け、画面に生きた動きを常時足す。 */
+@keyframes mascot-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.5deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(1.5deg);
+  }
+}
+.mascot-idle {
+  animation: mascot-idle 2.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot-idle {
+    animation: none;
+  }
+}
+
+/* HUDの通貨コインが時々キラッと光る、控えめな繰り返しアニメーション。 */
+@keyframes coin-shine {
+  0%,
+  92%,
+  100% {
+    filter: brightness(1);
+  }
+  96% {
+    filter: brightness(1.6) drop-shadow(0 0 3px rgba(242, 193, 78, 0.8));
+  }
+}
+.hud-coin-shine {
+  animation: coin-shine 3.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud-coin-shine {
+    animation: none;
+  }
+}
+
+/* リザルト画面: 判子がドンと押されるような演出 */
+@keyframes hanko-slam {
+  0% {
+    transform: scale(2.4) rotate(10deg);
+    opacity: 0;
+  }
+  55% {
+    transform: scale(0.92) rotate(-8deg);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1.08) rotate(-4deg);
+  }
+  100% {
+    transform: scale(1) rotate(-6deg);
+    opacity: 1;
+  }
+}
+.result-stamp {
+  animation: hanko-slam 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+/* ターン開始時の「第Nターン」筆文字演出 */
+.turn-announce-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 500;
+}
+.turn-announce-swoosh {
+  position: relative;
+  width: 420px;
+  max-width: 70vw;
+  height: 200px;
+  animation: turn-announce 1.6s cubic-bezier(0.25, 0.7, 0.3, 1) both;
+}
+.turn-announce-swoosh img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+.turn-announce-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Yuji Syuku', serif;
+  font-size: 54px;
+  color: #f0e6d2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+}
+@keyframes turn-announce {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) rotate(-4deg);
+  }
+  15% {
+    opacity: 1;
+    transform: scale(1.05) rotate(1deg);
+  }
+  25% {
+    transform: scale(1) rotate(0deg);
+  }
+  78% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05) rotate(0deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .turn-announce-swoosh {
+    animation: none;
+  }
+}

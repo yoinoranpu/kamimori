@@ -279,6 +279,25 @@ function drawEnemies(ctx, enemies, animTime) {
       }
     }
 
+    // 加護: 守りが生きている間は薄い結界をまとう(モンスターの背後に描く)
+    if (e.shield > 0) {
+      const wardImg = getImage(ASSET_PATHS.effectWardBarrier)
+      if (wardImg) {
+        ctx.globalAlpha = 0.8
+        drawImageCentered(ctx, wardImg, e.x, drawY, size * 1.25, size * 1.25)
+        ctx.globalAlpha = 1
+      } else {
+        ctx.strokeStyle = 'rgba(138,111,196,0.85)'
+        ctx.lineWidth = 2
+        ctx.setLineDash([5, 4])
+        ctx.beginPath()
+        ctx.arc(e.x, drawY, size * 0.55 + Math.sin(animTime * 3) * 1.5, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.setLineDash([])
+      }
+    }
+
+    // 毒: 緑の泡が立ち上る / 呪い: 頭上に紫の印
     // 毒・呪いのエフェクトはモンスターの背後に描く(スプライトを隠さないため)
     const poisonImg = e.poisonTimeLeft > 0 ? getImage(ASSET_PATHS.effectPoisonBubbles) : null
     if (poisonImg) {
@@ -359,25 +378,6 @@ function drawEnemies(ctx, enemies, animTime) {
     }
     ctx.restore()
 
-    // 加護: 守りが生きている間は薄い結界をまとう(祓で剥がされると消える)
-    if (e.shield > 0) {
-      const wardImg = getImage(ASSET_PATHS.effectWardBarrier)
-      if (wardImg) {
-        ctx.globalAlpha = 0.8
-        drawImageCentered(ctx, wardImg, e.x, drawY, size * 1.25, size * 1.25)
-        ctx.globalAlpha = 1
-      } else {
-        ctx.strokeStyle = 'rgba(138,111,196,0.85)'
-        ctx.lineWidth = 2
-        ctx.setLineDash([5, 4])
-        ctx.beginPath()
-        ctx.arc(e.x, drawY, size * 0.55 + Math.sin(animTime * 3) * 1.5, 0, Math.PI * 2)
-        ctx.stroke()
-        ctx.setLineDash([])
-      }
-    }
-
-    // 毒: 緑の泡が立ち上る / 呪い: 頭上に紫の印
     // 減速中は足元に凍結エフェクト
     if (e.slowTimeLeft > 0) {
       const frostImg = getImage(ASSET_PATHS.effectIceFrost)

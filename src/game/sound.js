@@ -12,6 +12,8 @@ function getCtx() {
 // 全ての音を「コンプレッサー(重なっても割れない)→ マスター音量」へ通し、さらに
 // 一部を短いリバーブ(神社の境内のような残響)へ送る。単体で鳴らすと素っ気ない合成音でも、
 // 同じ空間で鳴っているように聞こえて一気に安っぽさが減る。
+// 残響の量(0で完全に無し)。「エコーが違和感」との声を受けて、ごく控えめにしている。
+const REVERB_WET = 0.05
 let busIn = null
 let masterGain = null
 let muted = false
@@ -49,12 +51,12 @@ function getBus() {
   masterGain.gain.value = muted ? 0 : 0.9
 
   const reverb = ctx.createConvolver()
-  reverb.buffer = makeImpulse(ctx, 1.5, 3.2)
+  reverb.buffer = makeImpulse(ctx, 0.35, 4)
   const reverbTone = ctx.createBiquadFilter()
   reverbTone.type = 'lowpass'
   reverbTone.frequency.value = 3200
   const wet = ctx.createGain()
-  wet.gain.value = 0.22
+  wet.gain.value = REVERB_WET
 
   busIn.connect(comp)
   busIn.connect(reverb)

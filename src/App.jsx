@@ -537,16 +537,22 @@ export default function App() {
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', minHeight: 28, marginBottom: 4, fontSize: 12 }}>
             <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', visibility: screen === 'wave' ? 'visible' : 'hidden' }}>
               <span style={{ fontSize: 13, opacity: 0.8 }}>再生速度:</span>
-            {[1, 2, 4].map((s) => (
-              <button
-                key={s}
-                onClick={() => setSpeed(s)}
-                className={`ofuda-button${speed === s ? ' ofuda-button--primary' : ''}`}
-                style={{ padding: '4px 14px', fontSize: 13 }}
-              >
-                {s}x
-              </button>
-            ))}
+            {[1, 2, 4].map((s) => {
+              // 2倍速はスキルツリー(序盤)、4倍速は応用編で解放する
+              const unlocked = s === 1 || (s === 2 && effects.speed2x) || (s === 4 && effects.speed4x)
+              return (
+                <button
+                  key={s}
+                  onClick={() => unlocked && setSpeed(s)}
+                  disabled={!unlocked}
+                  title={unlocked ? undefined : 'スキルツリーで解放できるよ'}
+                  className={`ofuda-button${speed === s ? ' ofuda-button--primary' : ''}`}
+                  style={{ padding: '4px 14px', fontSize: 13, opacity: unlocked ? 1 : 0.4, cursor: unlocked ? 'pointer' : 'not-allowed' }}
+                >
+                  {s}x
+                </button>
+              )
+            })}
             </span>
             <span style={{ opacity: 0.8, marginLeft: 6 }}>宝珠:</span>
             {runRelics.length === 0 ? (

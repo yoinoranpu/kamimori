@@ -506,7 +506,7 @@ export default function SkillTreeScreen({ skillState, onUnlock, onStartRun, defa
                     opacity={state === 'locked' ? 0.4 : 0.9}
                     style={{ pointerEvents: 'none', userSelect: 'none' }}
                   >
-                    {nodeOfudaId(node) ? OFUDA_TYPES[nodeOfudaId(node)].label : node.id.startsWith('relic') ? '珠' : node.id === ADVANCED_GATE ? '？' : node.group === 'special' ? '特' : ''}
+                    {nodeOfudaId(node) ? OFUDA_TYPES[nodeOfudaId(node)].label : node.id.startsWith('relic') ? '珠' : node.id === ADVANCED_GATE ? '？' : node.group === 'special' ? '特' : node.id.startsWith('speed') ? '速' : ''}
                   </text>
                 )}
                 {icon && (

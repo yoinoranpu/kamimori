@@ -104,6 +104,8 @@ export const ASSET_PATHS = {
     second_chance: p('assets/ui/node_second_chance.png'),
     spirit_bonus: p('assets/ui/node_spirit_bonus.png'),
     advanced_gate: p('assets/ui/node_advanced_gate.png'),
+    speed_2x: p('assets/ui/node_speed_2x.png'),
+    speed_4x: p('assets/ui/node_speed_4x.png'),
     relic_choice: p('assets/ui/node_relic_choice.png'),
     relic_reroll: p('assets/ui/node_relic_reroll.png'),
   },

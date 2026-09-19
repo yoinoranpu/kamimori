@@ -42,6 +42,8 @@ export const SKILL_NODES = [
   { id: 'basic_vs_status', group: 'ability', name: '基本:状態異常の敵に追加ダメージ', maxTier: 1, costs: [20], requires: [{ id: 'basic_boost' }] },
   { id: 'basic_fire_rate', group: 'ability', name: '基本:連射速度アップ', maxTier: 1, costs: [20], requires: [{ id: 'basic_boost' }] },
   { id: 'basic_double_shot', group: 'ability', name: '基本:時々追加の球', maxTier: 1, costs: [20], requires: [{ id: 'basic_boost' }] },
+  // 再生速度: 2倍は序盤ツリー(通貨)、4倍は応用編(御霊)で解放する
+  { id: 'speed_2x', group: 'ability', name: '2倍速の再生を解放', maxTier: 1, costs: [15], requires: [{ id: 'basic_boost' }] },
 
   // --- 祓(基本の札の強化を極めた先)。加護を持つ敵(第3章〜)への切り札 ---
   { id: 'harai_unlock', group: 'unlock', name: '祓の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
@@ -49,6 +51,7 @@ export const SKILL_NODES = [
   { id: 'harai_ward', group: 'ability', name: '祓の強化:シールドへのダメージが増える', maxTier: 1, costs: [30], requires: [{ id: 'harai_unlock' }] },
 
   // --- 宝珠(章ボス撃破報酬)を強くするノード ---
+  { id: 'speed_4x', group: 'unlock', name: '4倍速の再生を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'relic_choice', group: 'unlock', name: '宝珠の選択肢が1つ増える', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'relic_reroll', group: 'ability', name: '宝珠の選択を1回引き直せる', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: 'relic_choice' }] },
 
@@ -151,7 +154,7 @@ export function loadSkillState() {
     const nodeTiers = parsed.nodeTiers ?? { [ROOT_ID]: 1 }
     if (!nodeTiers[ROOT_ID]) nodeTiers[ROOT_ID] = 1
     // 旧セーブ: 応用編の札を既に解放済みなら、入口も開けておく
-    if ((ADVANCED_UNLOCK_IDS.some((id) => nodeTiers[`${id}_unlock`] > 0) || nodeTiers.relic_choice > 0 || nodeTiers.relic_reroll > 0)) nodeTiers[ADVANCED_GATE] = 1
+    if ((ADVANCED_UNLOCK_IDS.some((id) => nodeTiers[`${id}_unlock`] > 0) || nodeTiers.relic_choice > 0 || nodeTiers.relic_reroll > 0 || nodeTiers.speed_4x > 0)) nodeTiers[ADVANCED_GATE] = 1
     return { currency: parsed.currency ?? 0, spirit: parsed.spirit ?? 0, nodeTiers }
   } catch {
     return { currency: 0, spirit: 0, nodeTiers: { [ROOT_ID]: 1 } }
@@ -243,6 +246,8 @@ export function getEffects(skillState) {
     shikiMax: 2 + (has('shiki_count') ? 2 : 0),
     relicChoiceCount: 3 + (has('relic_choice') ? 1 : 0),
     relicRerolls: has('relic_reroll') ? 1 : 0,
+    speed2x: has('speed_2x'),
+    speed4x: has('speed_4x'),
     extraPick: has('extra_pick') ? 1 : 0,
     extraCandidates: has('extra_candidate') ? 1 : 0,
     luckyDrop: has('lucky_drop'),

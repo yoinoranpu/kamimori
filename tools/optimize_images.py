@@ -20,7 +20,7 @@ converted = 0
 for dirpath, _, files in os.walk(SRC):
     for name in files:
         base, ext = os.path.splitext(name)
-        if ext.lower() not in ('.png', '.jpg', '.jpeg'):
+        if ext.lower() not in ('.png', '.jpg', '.jpeg', '.jfif'):
             continue
         path = os.path.join(dirpath, name)
         rel = os.path.relpath(path, SRC)

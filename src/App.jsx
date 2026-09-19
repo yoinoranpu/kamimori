@@ -554,7 +554,7 @@ export default function App() {
             ) : (
               runRelics.map((id) => {
                 const r = getRelic(id)
-                const color = { stat: '#f2c14e', rule: '#7a915a' }[r.category]
+                const color = { stat: '#f2c14e', rule: '#7a915a', special: '#c94c4c' }[r.category]
                 return (
                   <span
                     key={id}

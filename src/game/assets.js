@@ -77,7 +77,7 @@ export const ASSET_PATHS = {
   relicIcon: {
     stat: p('assets/ui/relic_stat.png'),
     rule: p('assets/ui/relic_rule.png'),
-    risk: p('assets/ui/relic_risk.png'),
+    special: p('assets/ui/relic_risk.png'),
   },
   wallEarth: p('assets/wallfx/wall_earth.png'),
   projectileOrb: p('assets/wallfx/projectile_orb.png'),

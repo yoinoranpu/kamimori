@@ -1,11 +1,12 @@
 // 宝珠(ほうじゅ): 章ボスを撃破するたびに3択(スキルで増減)から1つ選べる、その周回限りの
 // 強化。次の章からの札選び・配置の方向性を決める。周回が終わると失われる。
 // スキルツリーの「地道な強化」とは別に、「一回の当たりで方向性が変わる」ローグライク的な
-// 面白さを足す狙い。強化系(stat)とルール変化系(rule)の2方向性を用意している。
+// 面白さを足す狙い。強化系(stat)・ルール変化系(rule)・特化系(special)の3方向性を用意している。
 // ofuda: 指定があれば、その札を解放済みのときだけ候補に出る(+その札が候補に出やすくなる)
 // - stat: 単純な数値強化
 // - rule: 既存ルールの挙動そのものを変える(スキルツリーのアビリティ系ノードの条件を
 //   外したり、クールダウンを短縮したりする)
+// - special: 特定の札や、敵の耐性・弱点に特化した宝珠(選んだ札を軸に育てる方向)
 // (デメリットのある宝珠は廃止した。全て純粋な強化)
 export const RELIC_POOL = [
   {
@@ -73,23 +74,23 @@ export const RELIC_POOL = [
     description: '選んだ瞬間に通貨+100をもらえる',
   },
   // ---- 特定の札に強い宝珠 ----
-  { id: 'fire_master', category: 'stat', ofuda: 'fire', name: '紅蓮の宝珠', description: '火の札のダメージ+50%' },
-  { id: 'basic_master', category: 'stat', ofuda: 'basic', name: '一文字の宝珠', description: '基本の札のダメージ+60%' },
-  { id: 'earth_master', category: 'stat', ofuda: 'earth', name: '岩戸の宝珠', description: '土壁のHP+60%' },
+  { id: 'fire_master', category: 'special', ofuda: 'fire', name: '紅蓮の宝珠', description: '火の札のダメージ+50%' },
+  { id: 'basic_master', category: 'special', ofuda: 'basic', name: '一文字の宝珠', description: '基本の札のダメージ+60%' },
+  { id: 'earth_master', category: 'special', ofuda: 'earth', name: '岩戸の宝珠', description: '土壁のHP+60%' },
   { id: 'wind_master', category: 'rule', ofuda: 'wind', name: '颪の宝珠', description: '風の札のダメージ+50%、吹き飛ばし時間+60%' },
   { id: 'ice_master', category: 'rule', ofuda: 'ice', name: '霜降の宝珠', description: '氷の札のダメージ+50%、鈍足の強さ+25%' },
   { id: 'harai_master', category: 'rule', ofuda: 'harai', name: '清祓の宝珠', description: '祓の札のダメージ+50%、シールドへのダメージが2.5倍' },
-  { id: 'support_master', category: 'stat', ofuda: 'support', name: '結縁の宝珠', description: '支援効果が1段階強化される' },
-  { id: 'cannon_master', category: 'stat', ofuda: 'cannon', name: '轟の宝珠', description: '大筒の札のダメージ+40%、爆発範囲+30%' },
+  { id: 'support_master', category: 'special', ofuda: 'support', name: '結縁の宝珠', description: '支援効果が1段階強化される' },
+  { id: 'cannon_master', category: 'special', ofuda: 'cannon', name: '轟の宝珠', description: '大筒の札のダメージ+40%、爆発範囲+30%' },
   { id: 'poison_master', category: 'rule', ofuda: 'poison', name: '瘴気の宝珠', description: '毒の札のダメージ+50%、毒の感染が未解放でも常に発動する' },
   { id: 'thunder_master', category: 'rule', ofuda: 'thunder', name: '迅雷の宝珠', description: '雷の札の連鎖数+3、ダメージ+30%' },
   { id: 'curse_master', category: 'rule', ofuda: 'curse', name: '怨念の宝珠', description: '呪いの重さ+25%、呪いが長く続く' },
-  { id: 'sniper_master', category: 'stat', ofuda: 'sniper', name: '鷹の目の宝珠', description: '破魔矢の会心率+25%、射程+30%' },
-  { id: 'koban_master', category: 'stat', ofuda: 'koban', name: '福の宝珠', description: '小判が生む額が2倍になる' },
+  { id: 'sniper_master', category: 'special', ofuda: 'sniper', name: '鷹の目の宝珠', description: '破魔矢の会心率+25%、射程+30%' },
+  { id: 'koban_master', category: 'special', ofuda: 'koban', name: '福の宝珠', description: '小判が生む額が2倍になる' },
   { id: 'shiki_master', category: 'rule', ofuda: 'shiki', name: '百鬼夜行の宝珠', description: '式神を同時に+3体まで出せる、式神の力+40%' },
   // ---- 敵の耐性・弱点に関わる宝珠 ----
-  { id: 'ignore_resist', category: 'rule', name: '無我の宝珠', description: '敵の耐性を無視する(風が効かない岩、氷が効かない雪女にも通る)' },
-  { id: 'weak_boost', category: 'stat', name: '看破の宝珠', description: '敵の弱点を突いた時のダメージが大きく伸びる' },
+  { id: 'ignore_resist', category: 'special', name: '無我の宝珠', description: '敵の耐性を無視する(風が効かない岩、氷が効かない雪女にも通る)' },
+  { id: 'weak_boost', category: 'special', name: '看破の宝珠', description: '敵の弱点を突いた時のダメージが大きく伸びる' },
 ]
 
 const RELIC_MAP = Object.fromEntries(RELIC_POOL.map((r) => [r.id, r]))

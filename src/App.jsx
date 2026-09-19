@@ -104,14 +104,6 @@ export default function App() {
     markTutorialDone()
     setTutorialDone(true)
   }
-  // スキル「二刀流」「目利き」の反映
-  const pickMax = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0) + chapterStartBonus(chapter, turn)
-  // 配る先のターンにシールド持ちの敵が出るなら、解放済みの祓の札を必ず候補に入れる(引けずに詰むのを防ぐ)
-  const dealCandidates = (favored = null, forChapter = chapter, forTurn = turn) => {
-    const picks = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0) + chapterStartBonus(forChapter, forTurn)
-    const count = Math.max(CANDIDATE_COUNT + (effects.extraCandidates ?? 0), picks + 1)
-    return drawCandidates(effects.unlockedOfuda, favored, count, waveHasWard(forChapter, forTurn, effects.enemyCountMult ?? 1) ? ['harai'] : [])
-  }
 
   // 最初の画像読み込みが終わるまでローディング画面を出し、図形フォールバックが
   // 一瞬見えてしまう雑な瞬間を隠す
@@ -147,6 +139,14 @@ export default function App() {
   const hudFrameRef = useRef(0)
 
   const [turn, setTurn] = useState(1)
+  // スキル「二刀流」「目利き」の反映
+  const pickMax = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0) + chapterStartBonus(chapter, turn)
+  // 配る先のターンにシールド持ちの敵が出るなら、解放済みの祓の札を必ず候補に入れる(引けずに詰むのを防ぐ)
+  const dealCandidates = (favored = null, forChapter = chapter, forTurn = turn) => {
+    const picks = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0) + chapterStartBonus(forChapter, forTurn)
+    const count = Math.max(CANDIDATE_COUNT + (effects.extraCandidates ?? 0), picks + 1)
+    return drawCandidates(effects.unlockedOfuda, favored, count, waveHasWard(forChapter, forTurn, effects.enemyCountMult ?? 1) ? ['harai'] : [])
+  }
   const [candidates, setCandidates] = useState([])
   const [armedIndex, setArmedIndex] = useState(null)
   const [placedIndices, setPlacedIndices] = useState(new Set())

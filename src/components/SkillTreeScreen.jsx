@@ -39,6 +39,15 @@ function nodeIcon(node) {
 
 // 木全体が茶色一色でのっぺりして見えるという指摘を受けて、4本の根本の系統ごとに
 // ほんのり色付いた光暈を敷き、どの方向がどの属性かも一目でわかるようにする。
+// ノードの下に出す名前: 「強化:」などの前置きは省き、7文字ずつ最大2行(超えたら…)にする
+function labelLines(name) {
+  const short = name.includes(':') ? name.split(':').slice(1).join(':') : name
+  const chars = [...short]
+  if (chars.length <= 7) return [short]
+  if (chars.length <= 14) return [chars.slice(0, 7).join(''), chars.slice(7).join('')]
+  return [chars.slice(0, 7).join(''), chars.slice(7, 13).join('') + '…']
+}
+
 const THREAD_H = 12
 const THREAD_ASPECT = 1118 / 166
 
@@ -203,14 +212,16 @@ export default function SkillTreeScreen({ skillState, onUnlock, onStartRun, defa
       setPan(clampPan({ x: viewport.clientWidth / 2 - root.x * scale, y: viewport.clientHeight / 2 - root.y * scale }, startZoom))
       return true
     }
-    // 画面遷移アニメの直後は幅が0のことがあるため、測れるようになるまで数フレーム待つ
-    let tries = 0
-    let raf
-    const tick = () => {
-      if (!center() && tries++ < 30) raf = requestAnimationFrame(tick)
-    }
-    tick()
-    return () => cancelAnimationFrame(raf)
+    // 画面遷移中やタブが隠れている間は幅が0のことがあるので、測れるようになった最初の1回だけ
+    // 中央寄せする(ResizeObserverで待つ。フレーム数で諦めると、後から表示された時に効かない)
+    if (center()) return undefined
+    const viewport = viewportRef.current
+    if (!viewport || typeof ResizeObserver === 'undefined') return undefined
+    const ro = new ResizeObserver(() => {
+      if (center()) ro.disconnect()
+    })
+    ro.observe(viewport)
+    return () => ro.disconnect()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -536,10 +547,20 @@ export default function SkillTreeScreen({ skillState, onUnlock, onStartRun, defa
                     {costLabel(node, tier)}
                   </text>
                 )}
-                <text x={pos.x} y={pos.y + r + (state !== 'maxed' && !isRoot ? 30 : 18)} textAnchor="middle" fontSize="12" fill={state === 'locked' ? '#8a8171' : '#f0e6d2'}>
-                  {displayName(node, skillState)}
-                  {tierLabel && <tspan fill="#c9bfae"> {tierLabel}</tspan>}
-                </text>
+                {/* 名前は短くして2行までに折り返す(長い名前が横のノードに被るため)。正式名は選択時の案内で読める */}
+                {labelLines(displayName(node, skillState)).map((line, li) => (
+                  <text
+                    key={li}
+                    x={pos.x}
+                    y={pos.y + r + (state !== 'maxed' && !isRoot ? 30 : 18) + li * 13}
+                    textAnchor="middle"
+                    fontSize="12"
+                    fill={state === 'locked' ? '#8a8171' : '#f0e6d2'}
+                  >
+                    {line}
+                    {li === 0 && tierLabel && <tspan fill="#c9bfae"> {tierLabel}</tspan>}
+                  </text>
+                ))}
               </g>
             )
           })}

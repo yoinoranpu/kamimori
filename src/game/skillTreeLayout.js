@@ -67,7 +67,7 @@ function computeAngles(nodes, depth) {
 // 応用編(入口の「？？？」以降)は、既存の放射状ツリーの右側に、「？？？」を中心にした環状に
 // まとめる。内側の輪に札の解放ノード、その外側に各札の強化ノードを扇状に置く。
 const ADV_RING_1 = 205
-const ADV_RING_2 = 450
+const ADV_RING_2 = 520
 const ADV_UPGRADE_SPREAD_DEG = 10
 
 function layoutAdvanced(raw) {
@@ -166,6 +166,49 @@ function layoutSpecials(raw) {
   })
 }
 
+// ノードの占有領域(円 + その下の名前ラベル)同士が重ならないよう、重なりを解消する方向へ
+// 少しずつ押し離す。放射状の配置だけでは、同じ親の兄弟が近くに並んでラベルが横のノードに被る。
+// rootだけは動かさない(中心の基準)。押し離した結果が接続線と衝突しないかは別途確認している。
+const FOOT_HALF_W = 54
+const FOOT_TOP = 38
+const FOOT_BOTTOM = 34 + 52
+
+function relaxOverlaps(raw) {
+  const ids = Object.keys(raw)
+  for (let iter = 0; iter < 400; iter++) {
+    let moved = false
+    for (let i = 0; i < ids.length; i++) {
+      for (let j = i + 1; j < ids.length; j++) {
+        const a = raw[ids[i]]
+        const b = raw[ids[j]]
+        const overlapX = FOOT_HALF_W * 2 - Math.abs(a.x - b.x)
+        // 縦方向は上下で範囲が非対称(下にラベルがある)ので、上にある方の下端と下にある方の上端で判定
+        const upper = a.y <= b.y ? a : b
+        const lower = a.y <= b.y ? b : a
+        const overlapY = upper.y + FOOT_BOTTOM - (lower.y - FOOT_TOP)
+        if (overlapX <= 0 || overlapY <= 0) continue
+        moved = true
+        const idA = ids[i]
+        const idB = ids[j]
+        const fixedA = idA === 'root'
+        const fixedB = idB === 'root'
+        if (overlapX < overlapY) {
+          const dir = a.x <= b.x ? -1 : 1
+          const push = overlapX / 2 + 0.5
+          if (!fixedA) a.x += dir * push * (fixedB ? 2 : 1)
+          if (!fixedB) b.x -= dir * push * (fixedA ? 2 : 1)
+        } else {
+          const aIsUpper = a.y <= b.y
+          const push = overlapY / 2 + 0.5
+          if (!fixedA) a.y += (aIsUpper ? -1 : 1) * push * (fixedB ? 2 : 1)
+          if (!fixedB) b.y += (aIsUpper ? 1 : -1) * push * (fixedA ? 2 : 1)
+        }
+      }
+    }
+    if (!moved) break
+  }
+}
+
 function buildLayout() {
   const depth = computeDepths(SKILL_NODES)
   const angle = computeAngles(SKILL_NODES, depth)
@@ -178,6 +221,7 @@ function buildLayout() {
   })
   layoutSpecials(raw)
   layoutAdvanced(raw)
+  relaxOverlaps(raw)
 
   const margin = 115
   const xs = Object.values(raw).map((p) => p.x)

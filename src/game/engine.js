@@ -153,11 +153,22 @@ export function startWave(state, turn, skillEffects) {
   }
 }
 
+// 章ごとのHP倍率。第2章以降は、お札が全部片付いた状態から始まるので、最初は軽く(0.45倍)して
+// 6ターン目にかけて最終倍率まで段階的に上げる。(章の1ターン目から全開の倍率だと、2枚の札では
+// 何も倒せず立て直せない。第1章のターン1が「鬼火5体」なのと釣り合う重さにする狙い)
+const CHAPTER_START_HP_MULT = 0.45
+function chapterHpMult(state) {
+  const full = getChapter(state.chapter ?? 1).hpMult
+  if (full <= 1) return full
+  const ramp = Math.min(1, ((state.turn ?? 1) - 1) / 5)
+  return CHAPTER_START_HP_MULT + (full - CHAPTER_START_HP_MULT) * ramp
+}
+
 function spawnEnemy(state, typeId, xOverride, yOverride, hpMult = 1) {
   const def = ENEMY_TYPES[typeId]
   // ボスは固有の調整値を持つのでスケーリング対象外。雑魚はターンが進むほど硬くなる。
   const hpScale =
-    def.isBoss || def.noScale ? 1 : (1 + (state.turn - 1) * ENEMY_HP_SCALE_PER_TURN) * getChapter(state.chapter ?? 1).hpMult
+    def.isBoss || def.noScale ? 1 : (1 + (state.turn - 1) * ENEMY_HP_SCALE_PER_TURN) * chapterHpMult(state)
   const hp = def.hp * hpScale * hpMult
   const spawnRange = getSpawnYRange(state.turn)
   state.enemies.push({

@@ -14,7 +14,7 @@ import { loadSkillState, saveSkillState, getEffects, unlockNode } from './game/s
 import { applyRelicEffects, pickRelicChoices, getFavoredOfuda, getRelic } from './game/relics.js'
 import { getChapter } from './game/chapters.js'
 import RelicChoiceScreen from './components/RelicChoiceScreen.jsx'
-import { MAX_TURN, FIELD, ENEMY_TYPES, OFUDA_TYPES, CANDIDATE_PICK_MAX } from './game/constants.js'
+import { MAX_TURN, FIELD, ENEMY_TYPES, OFUDA_TYPES, CANDIDATE_PICK_MAX, chapterStartBonus } from './game/constants.js'
 import { ASSET_PATHS, preloadAllAssets } from './game/assets.js'
 import { playWaveClear, playDefeat, playTurnClear, playTaiko, playRelicGet, isMuted, setMuted } from './game/sound.js'
 import { CANDIDATE_COUNT } from './game/constants.js'
@@ -105,10 +105,13 @@ export default function App() {
     setTutorialDone(true)
   }
   // スキル「二刀流」「目利き」の反映
-  const pickMax = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0)
+  const pickMax = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0) + chapterStartBonus(chapter, turn)
   // 配る先のターンにシールド持ちの敵が出るなら、解放済みの祓の札を必ず候補に入れる(引けずに詰むのを防ぐ)
-  const dealCandidates = (favored = null, forChapter = chapter, forTurn = turn) =>
-    drawCandidates(effects.unlockedOfuda, favored, CANDIDATE_COUNT + (effects.extraCandidates ?? 0), waveHasWard(forChapter, forTurn, effects.enemyCountMult ?? 1) ? ['harai'] : [])
+  const dealCandidates = (favored = null, forChapter = chapter, forTurn = turn) => {
+    const picks = CANDIDATE_PICK_MAX + (effects.extraPick ?? 0) + chapterStartBonus(forChapter, forTurn)
+    const count = Math.max(CANDIDATE_COUNT + (effects.extraCandidates ?? 0), picks + 1)
+    return drawCandidates(effects.unlockedOfuda, favored, count, waveHasWard(forChapter, forTurn, effects.enemyCountMult ?? 1) ? ['harai'] : [])
+  }
 
   // 最初の画像読み込みが終わるまでローディング画面を出し、図形フォールバックが
   // 一瞬見えてしまう雑な瞬間を隠す

@@ -91,11 +91,11 @@ export const OFUDA_TYPES = {
     id: 'harai',
     name: '祓の札',
     kind: 'attack',
-    damage: 8,
+    damage: 12,
     // 加護(ward)を持つ敵の守りを剥がす専用札。加護持ちには大ダメージ、それ以外には控えめ。
     wardBreakSeconds: 5,
     range: 2.5 * UNIT,
-    interval: 1.4,
+    interval: 1.2,
     hp: 45,
     color: '#f2f0f7',
     accent: '#8a6fc4',
@@ -323,8 +323,8 @@ export const ENEMY_TYPES = {
   kitsune: {
     id: 'kitsune',
     name: '狐憑き',
-    hp: 110,
-    speedMult: 1.2,
+    hp: 90,
+    speedMult: 1.0,
     radius: 14,
     color: '#b56ad6',
     cardSlash: false,
@@ -337,8 +337,8 @@ export const ENEMY_TYPES = {
   kasha: {
     id: 'kasha',
     name: '火車',
-    hp: 160,
-    speedMult: 1.1,
+    hp: 130,
+    speedMult: 0.95,
     radius: 16,
     color: '#d94a2b',
     cardSlash: true,
@@ -420,6 +420,13 @@ export const BOSS_AOE_DAMAGE = 14
 export const BOSS_SUMMON_COUNT = 5
 // ボス登場演出(拡大縮小フェードイン+画面暗転)の長さ。この間ボスは動かず攻撃もしない
 export const BOSS_ENTRANCE_SECONDS = 1.4
+
+// 第2章以降は、お札が全部片付いた状態から始まるので、最初の数ターンは多めに札を置ける
+// (ターン1: +2枚 / ターン2: +1枚)。候補は置ける枚数より必ず1枚多く配る。
+export function chapterStartBonus(chapter, turn) {
+  if (chapter < 2) return 0
+  return turn === 1 ? 2 : turn === 2 ? 1 : 0
+}
 
 export const CANDIDATE_COUNT = 3 // 毎ターンの候補提示枚数(仮)
 export const CANDIDATE_PICK_MAX = 2 // 選択可能枚数(仮)

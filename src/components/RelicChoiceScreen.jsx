@@ -3,7 +3,6 @@ import { ASSET_PATHS } from '../game/assets.js'
 const CATEGORY_LABEL = {
   stat: { text: '強化', color: '#f2c14e' },
   rule: { text: 'ルール変化', color: '#7a915a' },
-  risk: { text: 'リスク&リターン', color: '#c94c4c' },
 }
 
 // ボス撃破時だけ出る、宝珠を1つ選ぶ画面。スキルツリーの地道な強化とは別に、

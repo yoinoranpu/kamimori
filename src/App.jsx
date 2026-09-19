@@ -414,7 +414,7 @@ export default function App() {
     setRunRelics(nextRelics)
     playRelicGet()
     // 開幕の宝珠は選んだ瞬間に通貨ボーナスを受け取る
-    if (relicId === 'head_start') runStateRef.current.currencyThisRun += 50
+    if (relicId === 'head_start') runStateRef.current.currencyThisRun += 100
     if (relicFromRef.current === 'milestone') {
       // 節目ボスの報酬: 同じ章の次のターンへ(お札は持ち越し)
       handledMilestoneRef.current = false
@@ -554,7 +554,7 @@ export default function App() {
             ) : (
               runRelics.map((id) => {
                 const r = getRelic(id)
-                const color = { stat: '#f2c14e', rule: '#7a915a', risk: '#c94c4c' }[r.category]
+                const color = { stat: '#f2c14e', rule: '#7a915a' }[r.category]
                 return (
                   <span
                     key={id}

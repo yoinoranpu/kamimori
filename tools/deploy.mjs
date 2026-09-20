@@ -17,7 +17,9 @@ run(`node tools/build_site.mjs "${tmp}"`)
 writeFileSync(join(tmp, '.nojekyll'), '')
 run('git init -q -b gh-pages', tmp)
 run('git add -A', tmp)
-run(`git commit -q -m "deploy ${new Date().toISOString()}"`, tmp)
+// メールアドレスが公開履歴に残らないよう、GitHubの非公開用アドレスで作者を固定する
+const author = '-c user.name=yoinoranpu -c user.email=295023206+yoinoranpu@users.noreply.github.com'
+run(`git ${author} commit -q -m "deploy ${new Date().toISOString()}"`, tmp)
 run(`git push -f "${remote}" gh-pages`, tmp)
 rmSync(tmp, { recursive: true, force: true })
 console.log('\n公開しました: https://yoinoranpu.github.io/kamimori/ (ゲーム本体は /play/ 、反映まで1〜2分かかることがあります)')

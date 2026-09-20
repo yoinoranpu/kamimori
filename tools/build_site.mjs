@@ -144,7 +144,14 @@ ${yokai}
 
 <footer>
   <a class="cta" href="play/">遊ぶ</a>
-  <p>セーブはブラウザ内に保存されます。 / <a href="https://github.com/yoinoranpu/kamimori">GitHub</a></p>
+  <p><a href="https://github.com/yoinoranpu/kamimori">GitHub</a></p>
+  <div class="legal" id="about">
+    <h3>プライバシーと権利について</h3>
+    <p><b>プライバシー:</b> このゲームは、名前やメールアドレスなどの個人情報を集めません。アクセス解析やクッキーも使っていません。セーブデータは、お使いのブラウザの中(localStorage)にだけ保存され、外部に送られません。</p>
+    <p><b>外部サービス:</b> 文字の表示にGoogle Fontsを使っています。ページを開くと、フォントの取得のためにGoogleのサーバーへアクセスが発生します(IPアドレス等がGoogleに届く場合があります)。</p>
+    <p><b>イラストについて:</b> ゲーム内のイラストの一部は、生成AIを用いて作成しています。</p>
+    <p><b>権利:</b> ゲームのプログラム・イラスト・文章の無断転載、再配布、二次利用はお断りしています。</p>
+  </div>
   <p>© 紙守り</p>
 </footer>
 </body>

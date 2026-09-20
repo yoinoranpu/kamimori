@@ -1,78 +1,78 @@
+import { useState } from 'react'
 import { ASSET_PATHS } from '../game/assets.js'
+import { playRelicGet } from '../game/sound.js'
 
-const CATEGORY_LABEL = {
-  stat: { text: '強化', color: '#f2c14e' },
-  rule: { text: 'ルール変化', color: '#7a915a' },
-  special: { text: '特化', color: '#c94c4c' },
+const CATEGORY = {
+  stat: { text: '強化', color: '#f2c14e', hint: '数値がそのまま強くなる' },
+  rule: { text: 'ルール変化', color: '#7fc28a', hint: '札の働き方そのものが変わる' },
+  special: { text: '特化', color: '#e0645a', hint: '得意な札・相手を伸ばす' },
 }
 
-// ボス撃破時だけ出る、宝珠を1つ選ぶ画面。スキルツリーの地道な強化とは別に、
-// 「一回の当たりで方向性が変わる」ローグライク的な選択を挟む。
 const CHAPTER_BOSS = { 1: '荒魂', 2: '凍姫' }
 
+// 章ボス(・節目のボス)を倒した時に出る、宝珠を1つ選ぶ画面。
+// 一枚ずつ順番に浮かび上がり、選ぶと選んだ宝珠だけが光って残り、他は静かに消えてから次へ進む。
 export default function RelicChoiceScreen({ bossName, choices, chapter = 1, owned = [], rerollsLeft = 0, onReroll, onChoose }) {
+  const [chosenId, setChosenId] = useState(null)
+
+  const choose = (relic) => {
+    if (chosenId) return
+    setChosenId(relic.id)
+    playRelicGet() // 選んだ瞬間に鳴らす(次の画面へ進む前の余韻の間に聞こえるように)
+    setTimeout(() => onChoose(relic.id), 900)
+  }
+
   return (
-    <div style={{ textAlign: 'center', padding: '24px 0' }}>
-      <h2 style={{ margin: '0 0 4px', fontSize: 22, color: '#f2c14e' }}>{bossName ?? CHAPTER_BOSS[chapter] ?? 'ボス'}を撃退した!</h2>
-      <p style={{ margin: '0 0 20px', opacity: 0.85, fontSize: 13 }}>宝珠を1つ選ぼう。この周回の間だけ力を貸してくれるよ。これから使う札を決める手がかりにしてね。</p>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 14, flexWrap: 'wrap', padding: '0 12px' }}>
-        {choices.map((relic) => {
-          const cat = CATEGORY_LABEL[relic.category]
+    <div className="relic-stage">
+      <div className="relic-rays" aria-hidden="true" />
+      {Array.from({ length: 16 }, (_, i) => (
+        <span key={i} className="relic-mote" style={{ left: `${(i * 6.4 + 3) % 100}%`, animationDelay: `${-((i * 1.3) % 9)}s`, animationDuration: `${7 + ((i * 1.7) % 6)}s` }} aria-hidden="true" />
+      ))}
+
+      <div className="relic-head">
+        <span className="relic-chip">宝珠を授かる</span>
+        <h2 className="relic-title">{bossName ?? CHAPTER_BOSS[chapter] ?? 'ボス'}を撃退した!</h2>
+        <p className="relic-sub">宝珠を1つ選ぼう。この周回のあいだ、力を貸してくれる。</p>
+      </div>
+
+      <div className="relic-cards">
+        {choices.map((relic, i) => {
+          const cat = CATEGORY[relic.category] ?? CATEGORY.stat
+          const state = chosenId ? (chosenId === relic.id ? 'chosen' : 'faded') : ''
           return (
             <button
               key={relic.id}
-              onClick={() => onChoose(relic.id)}
-              className="ofuda-panel"
-              style={{
-                width: 180,
-                minHeight: 190,
-                border: '2px solid #5b4636',
-                borderRadius: 10,
-                padding: '16px 12px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 8,
-                cursor: 'pointer',
-                color: '#f0e6d2',
-                textAlign: 'center',
-              }}
+              className={`relic-card ${state}`}
+              style={{ '--c': cat.color, '--i': i }}
+              onClick={() => choose(relic)}
+              disabled={!!chosenId}
             >
-              {/* 宝珠のイラスト(分類ごとに1枚)。未用意の間は表示しない */}
-              <img
-                src={ASSET_PATHS.relicIcon[relic.category]}
-                alt=""
-                width={56}
-                height={56}
-                style={{ objectFit: 'contain' }}
-                onError={(e) => (e.target.style.display = 'none')}
-              />
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 'bold',
-                  color: cat.color,
-                  border: `1px solid ${cat.color}`,
-                  borderRadius: 999,
-                  padding: '2px 10px',
-                }}
-              >
-                {cat.text}
+              <span className="relic-orb">
+                <img src={ASSET_PATHS.relicIcon[relic.category]} alt="" onError={(e) => (e.target.style.display = 'none')} />
               </span>
-              <div style={{ fontSize: 16, fontWeight: 'bold', marginTop: 4 }}>{relic.name}</div>
-              <div style={{ fontSize: 12, opacity: 0.85, lineHeight: 1.5 }}>{relic.description}</div>
+              <span className="relic-cat">{cat.text}</span>
+              <span className="relic-name">{relic.name}</span>
+              <span className="relic-desc">{relic.description}</span>
+              <span className="relic-pick">{state === 'chosen' ? '授かった!' : 'この宝珠を選ぶ'}</span>
             </button>
           )
         })}
       </div>
-      {rerollsLeft > 0 && (
-        <button onClick={onReroll} className="ofuda-button" style={{ marginTop: 18, padding: '6px 18px', fontSize: 13 }}>
+
+      {rerollsLeft > 0 && !chosenId && (
+        <button onClick={onReroll} className="ofuda-button" style={{ marginTop: 22, padding: '6px 20px', fontSize: 13 }}>
           引き直す(残り{rerollsLeft}回)
         </button>
       )}
+
       {owned.length > 0 && (
-        <div style={{ marginTop: 20, fontSize: 12, opacity: 0.85 }}>
-          所持中の宝珠: {owned.map((r) => r.name).join(' / ')}
+        <div className="relic-owned">
+          <span style={{ opacity: 0.7 }}>これまでの宝珠:</span>
+          {owned.map((r) => (
+            <span key={r.id} style={{ borderColor: (CATEGORY[r.category] ?? CATEGORY.stat).color }}>
+              {r.name.replace('の宝珠', '')}
+            </span>
+          ))}
         </div>
       )}
     </div>

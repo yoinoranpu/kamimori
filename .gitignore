@@ -1,3 +1,9 @@
 node_modules/
 dist/
 *.log
+
+# 公開しないもの(手元には残す)
+assets_src/
+ofuda-td-standalone.html
+ofuda_td_kikakusho.md
+.claude/

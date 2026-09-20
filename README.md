@@ -25,9 +25,13 @@ npm run deploy     # ゲームとホームページ(site/)を合成して GitHub
 
 - React 19 + Vite。ゲームの本体(`src/game/engine.js`)は描画・音から独立した純粋なシミュレーション。
 - 効果音はWeb Audio APIで合成(音声ファイルなし)。
-- 画像は `public/assets/`(WebP)。元画像は `assets_src/`。
+- 画像は `public/assets/`(WebP)。元画像は手元の `assets_src/` に置く(リポジトリには含めない)。
 - ホームページは `site/style.css` と `tools/build_site.mjs`(札・妖怪の一覧は `constants.js` から自動生成)。
-- 企画書: `ofuda_td_kikakusho.md`
 
 ## クレジット
 イラスト・企画・ゲームデザイン: 作者。実装は Claude(Anthropic)との共同開発。
+
+## 権利・プライバシー
+- **ライセンス:** 明示的なライセンスは付けていません(すべての権利を保持)。プログラム・イラスト・文章の無断転載、再配布、二次利用はお断りします。
+- **イラスト:** ゲーム内のイラストの一部は、生成AIを用いて作成しています。
+- **プライバシー:** 個人情報の収集、アクセス解析、クッキーは使っていません。セーブはブラウザ内(localStorage)にのみ保存されます。文字表示にGoogle Fontsを使うため、ページ表示時にGoogleのサーバーへのアクセスが発生します。

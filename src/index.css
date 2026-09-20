@@ -419,3 +419,46 @@ body {
     animation: none;
   }
 }
+
+/* ---- スタート画面 ---- */
+.start-screen { position: relative; min-height: 78vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; }
+.start-screen::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 38%, rgba(201, 162, 58, 0.18), transparent 62%); pointer-events: none; }
+.start-inner { position: relative; width: 100%; }
+.start-tagline { font-family: 'Yuji Syuku', serif; font-size: clamp(18px, 3vw, 26px); letter-spacing: 0.25em; color: #f0e6d2; margin: 26px 0 30px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6); }
+.start-button { animation: start-pulse 2.6s ease-in-out infinite; }
+.start-note { font-size: 12px; opacity: 0.55; margin: 14px 0 0; }
+.start-credit { position: relative; font-size: 11px; opacity: 0.5; margin: 44px 0 0; line-height: 1.7; }
+.start-petal { position: absolute; top: -40px; opacity: 0.85; pointer-events: none; animation: start-fall linear infinite; }
+@keyframes start-fall { 0% { transform: translate3d(0, -40px, 0) rotate(0deg); } 100% { transform: translate3d(70px, 88vh, 0) rotate(360deg); } }
+@keyframes start-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@media (prefers-reduced-motion: reduce) { .start-petal { display: none; } .start-button { animation: none; } }
+
+/* ---- 宝珠を選ぶ画面 ---- */
+.relic-stage { position: relative; text-align: center; padding: 34px 8px 30px; overflow: hidden; min-height: 70vh; }
+.relic-rays { position: absolute; left: 50%; top: 26%; width: 900px; height: 900px; margin: -450px 0 0 -450px; background: repeating-conic-gradient(from 0deg, rgba(242, 193, 78, 0.16) 0 8deg, transparent 8deg 22deg); -webkit-mask-image: radial-gradient(circle, #000 0, transparent 62%); mask-image: radial-gradient(circle, #000 0, transparent 62%); animation: relic-spin 60s linear infinite; pointer-events: none; }
+@keyframes relic-spin { to { transform: rotate(360deg); } }
+.relic-mote { position: absolute; bottom: -10px; width: 6px; height: 6px; border-radius: 50%; background: #f7dc8a; box-shadow: 0 0 10px 3px rgba(242, 193, 78, 0.7); opacity: 0; animation: relic-rise linear infinite; pointer-events: none; }
+@keyframes relic-rise { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 0.9; } 100% { transform: translateY(-70vh); opacity: 0; } }
+.relic-head { position: relative; }
+.relic-chip { display: inline-block; font-size: 12px; letter-spacing: 0.35em; color: #2b241d; background: #f2c14e; padding: 2px 16px; border-radius: 2px; animation: relic-in 0.6s ease-out both; }
+.relic-title { font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: clamp(28px, 5vw, 42px); letter-spacing: 0.18em; margin: 12px 0 4px; color: #f9e6a8; text-shadow: 0 0 22px rgba(242, 193, 78, 0.55), 0 3px 8px rgba(0, 0, 0, 0.7); animation: relic-in 0.7s 0.1s ease-out both; }
+.relic-sub { margin: 0 0 28px; opacity: 0.8; font-size: 14px; animation: relic-in 0.7s 0.25s ease-out both; }
+.relic-cards { position: relative; display: flex; justify-content: center; align-items: stretch; gap: 18px; flex-wrap: wrap; padding: 0 8px; }
+.relic-card { --c: #f2c14e; position: relative; width: 210px; min-height: 300px; padding: 22px 16px 18px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: #f0e6d2; text-align: center; font: inherit; background: linear-gradient(to bottom, rgba(46, 37, 28, 0.96), rgba(28, 22, 16, 0.96)); border: 2px solid color-mix(in srgb, var(--c) 55%, #3a2f22); border-radius: 12px; box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55), inset 0 0 30px color-mix(in srgb, var(--c) 12%, transparent); animation: relic-card-in 0.7s calc(0.45s + var(--i) * 0.16s) cubic-bezier(0.2, 0.8, 0.3, 1) both; transition: transform 0.25s, box-shadow 0.25s, opacity 0.4s, filter 0.4s; }
+.relic-card::before { content: ''; position: absolute; left: 10px; right: 10px; top: 0; height: 3px; background: var(--c); border-radius: 0 0 3px 3px; }
+.relic-card:hover:not(:disabled) { transform: translateY(-10px) scale(1.03); box-shadow: 0 18px 34px rgba(0, 0, 0, 0.6), 0 0 26px color-mix(in srgb, var(--c) 45%, transparent); }
+.relic-orb { position: relative; width: 92px; height: 92px; display: grid; place-items: center; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--c) 30%, transparent), transparent 70%); animation: relic-float 3.2s ease-in-out infinite; animation-delay: calc(var(--i) * -0.7s); }
+.relic-orb img { width: 74px; height: 74px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.6)); }
+@keyframes relic-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.relic-cat { font-size: 11px; letter-spacing: 0.2em; color: var(--c); border: 1px solid var(--c); border-radius: 999px; padding: 0 12px; }
+.relic-name { font-family: 'Yuji Syuku', serif; font-size: 24px; letter-spacing: 0.12em; color: #fff4dd; margin-top: 2px; }
+.relic-desc { font-size: 13px; line-height: 1.65; opacity: 0.88; flex: 1; }
+.relic-pick { font-size: 12px; letter-spacing: 0.15em; color: var(--c); opacity: 0; transition: opacity 0.2s; margin-top: 6px; }
+.relic-card:hover:not(:disabled) .relic-pick, .relic-card.chosen .relic-pick { opacity: 1; }
+.relic-card.chosen { transform: translateY(-14px) scale(1.08); box-shadow: 0 0 46px 8px color-mix(in srgb, var(--c) 60%, transparent), 0 18px 34px rgba(0, 0, 0, 0.6); }
+.relic-card.faded { opacity: 0.15; transform: scale(0.94); filter: grayscale(0.8); }
+.relic-owned { position: relative; margin-top: 26px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; font-size: 12px; }
+.relic-owned span:not(:first-child) { border: 1px solid; border-radius: 999px; padding: 1px 12px; background: rgba(0, 0, 0, 0.35); }
+@keyframes relic-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes relic-card-in { from { opacity: 0; transform: translateY(46px) scale(0.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .relic-rays, .relic-mote, .relic-orb { animation: none; } .relic-card, .relic-chip, .relic-title, .relic-sub { animation-duration: 0.01s; animation-delay: 0s; } }

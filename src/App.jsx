@@ -8,6 +8,7 @@ import LoadingScreen from './components/LoadingScreen.jsx'
 import { describeWave, armedHint, waveHasWard } from './game/briefing.js'
 import { isTutorialDone, markTutorialDone, resetTutorial, tutorialSelectMessage, TREE_FIRST_MESSAGE } from './game/tutorial.js'
 import SettingsPanel from './components/SettingsPanel.jsx'
+import StartScreen from './components/StartScreen.jsx'
 import { createRunState, placeTower, startWave, startChapter } from './game/engine.js'
 import { drawCandidates } from './game/candidates.js'
 import { loadSkillState, saveSkillState, getEffects, unlockNode } from './game/skillTree.js'
@@ -133,7 +134,7 @@ export default function App() {
     root.setProperty('--url-field-frame', `url("${abs(ASSET_PATHS.uiFieldFrame)}")`)
   }, [])
 
-  const [screen, setScreen] = useState('title')
+  const [screen, setScreen] = useState('start')
   const runStateRef = useRef(null)
   const handledOutcomeRef = useRef(false)
   const handledWaveClearRef = useRef(false)
@@ -413,7 +414,6 @@ export default function App() {
   const handleRelicChosen = (relicId) => {
     const nextRelics = [...runRelics, relicId]
     setRunRelics(nextRelics)
-    playRelicGet()
     // 開幕の宝珠は選んだ瞬間に通貨ボーナスを受け取る
     if (relicId === 'head_start') runStateRef.current.currencyThisRun += 100
     if (relicFromRef.current === 'milestone') {
@@ -455,6 +455,19 @@ export default function App() {
   return (
     <div style={{ width: '100%', maxWidth: 960 }}>
       {/* ゲーム中(select/wave/result)は縦スペースを圧迫しないよう、タイトル画面だけ大きく出す */}
+      {screen === 'start' && (
+        <div key="start" className="screen-transition">
+          <StartScreen
+            hasSave={skillState.currency > 0 || (skillState.spirit ?? 0) > 0 || Object.keys(skillState.nodeTiers).length > 1}
+            banner={<TitleBanner />}
+            onStart={() => {
+              playTaiko() // 最初の操作で音が使えるようになる
+              setScreen('title')
+            }}
+          />
+        </div>
+      )}
+
       {screen === 'title' && <TitleBanner />}
 
       {screen === 'title' && (

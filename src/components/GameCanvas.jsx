@@ -146,17 +146,45 @@ function drawField(ctx, turn, chapter = 1) {
   }
 }
 
+// 射程の表示。攻撃札は「細い実線の輪」+ ごく薄い塗り、支援札は「金色の点線の輪」+ 支援先へ
+// 伸びる点線、と見た目を分けて、重なっても支援の範囲だけは見分けられるようにする。
+function drawRangeRing(ctx, x, y, def, isPreview = false) {
+  if (!def.range) return
+  const isSupport = def.kind === 'support'
+  const big = def.range > 260 // 破魔矢のような巨大な射程は塗らず、輪だけにする(画面が埋まるため)
+  ctx.beginPath()
+  ctx.arc(x, y, def.range, 0, Math.PI * 2)
+  if (!big) {
+    ctx.fillStyle = isSupport ? 'rgba(232, 190, 70, 0.10)' : `${def.accent}${isPreview ? '14' : '0d'}`
+    ctx.fill()
+  }
+  ctx.strokeStyle = isSupport ? 'rgba(214, 160, 30, 0.95)' : `${def.accent}${isPreview ? '99' : '55'}`
+  ctx.lineWidth = isSupport ? 2.5 : 1.2
+  ctx.setLineDash(isSupport ? [3, 7] : isPreview ? [8, 6] : [])
+  ctx.stroke()
+  ctx.setLineDash([])
+}
+
 function drawTowerRanges(ctx, towers) {
   for (const t of towers) {
     const def = OFUDA_TYPES[t.type]
     if (!def.range) continue
-    ctx.beginPath()
-    ctx.arc(t.x, t.y, def.range, 0, Math.PI * 2)
-    ctx.fillStyle = `${def.accent}18`
-    ctx.fill()
-    ctx.strokeStyle = `${def.accent}66`
-    ctx.lineWidth = 1
-    ctx.stroke()
+    drawRangeRing(ctx, t.x, t.y, def)
+    if (def.kind === 'support') {
+      // 支援を受けている札へ金色の点線を引く(どの札が強化されているか一目で分かる)
+      ctx.strokeStyle = 'rgba(214, 160, 30, 0.7)'
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([2, 5])
+      for (const o of towers) {
+        if (o === t || OFUDA_TYPES[o.type].kind !== 'attack') continue
+        if (Math.hypot(o.x - t.x, o.y - t.y) > def.range) continue
+        ctx.beginPath()
+        ctx.moveTo(t.x, t.y)
+        ctx.lineTo(o.x, o.y)
+        ctx.stroke()
+      }
+      ctx.setLineDash([])
+    }
   }
 }
 
@@ -198,17 +226,7 @@ function drawWall(ctx, x, y) {
 function drawPlacementPreview(ctx, pos, typeId) {
   if (!pos || !typeId) return
   const def = OFUDA_TYPES[typeId]
-  if (def.range) {
-    ctx.beginPath()
-    ctx.arc(pos.x, pos.y, def.range, 0, Math.PI * 2)
-    ctx.fillStyle = `${def.accent}22`
-    ctx.fill()
-    ctx.strokeStyle = def.accent
-    ctx.lineWidth = 2
-    ctx.setLineDash([6, 6])
-    ctx.stroke()
-    ctx.setLineDash([])
-  }
+  drawRangeRing(ctx, pos.x, pos.y, def, true)
   ctx.globalAlpha = 0.75
   if (def.kind === 'wall') {
     drawWall(ctx, pos.x, pos.y)
@@ -820,6 +838,15 @@ export default function GameCanvas({ runStateRef, active, onCanvasClick, skillEf
       const dt = Math.min((now - lastTime) / 1000, 0.1)
       lastTime = now
       animTime += dt
+
+      if (!active) {
+        // 配置フェーズはstep()が回らないので、置いた直後の「ふわっと着地」演出タイマーだけここで進める。
+        // 進めないと、置いた札がいつまでも半透明・拡大のまま(プレビューのまま)に見えてしまう。
+        for (const t of runStateRef.current.towers) {
+          if (t.placedFlash > 0) t.placedFlash = Math.max(0, t.placedFlash - dt)
+          if (t.fireFlash > 0) t.fireFlash = Math.max(0, t.fireFlash - dt)
+        }
+      }
 
       if (active) {
         // 早送り: 同じdtでstepを複数回まわし、体感速度を上げる(値を大きくして

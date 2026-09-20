@@ -46,46 +46,46 @@ export const SKILL_NODES = [
   { id: 'speed_2x', group: 'ability', name: '2倍速の再生を解放', maxTier: 1, costs: [15], requires: [{ id: 'basic_boost' }] },
 
   // --- 祓(基本の札の強化を極めた先)。加護を持つ敵(第3章〜)への切り札 ---
-  { id: 'harai_unlock', group: 'unlock', name: '祓の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'harai_unlock', group: 'unlock', name: '祓の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'harai_dmg', group: 'stat', name: '祓の札の強化', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'harai_unlock' }] },
   { id: 'harai_ward', group: 'ability', name: '祓の強化:シールドへのダメージが増える', maxTier: 1, costs: [30], requires: [{ id: 'harai_unlock' }] },
 
   // --- 宝珠(章ボス撃破報酬)を強くするノード ---
-  { id: 'speed_4x', group: 'unlock', name: '4倍速の再生を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'speed_4x', group: 'unlock', name: '4倍速の再生を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'relic_choice', group: 'unlock', name: '宝珠の選択肢が1つ増える', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'relic_reroll', group: 'ability', name: '宝珠の選択を1回引き直せる', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: 'relic_choice' }] },
 
   // --- 新しい札(スキルツリーの奥で解放していく) ---
-  { id: 'cannon_unlock', group: 'unlock', name: '大筒の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'cannon_unlock', group: 'unlock', name: '大筒の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'cannon_radius', group: 'stat', name: '大筒の強化:爆発範囲', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'cannon_unlock' }] },
   { id: 'cannon_power', group: 'stat', name: '大筒の強化:威力', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'cannon_unlock' }] },
   { id: 'cannon_knock', group: 'ability', name: '大筒の強化:爆風で敵を押し戻す', maxTier: 1, costs: [30], requires: [{ id: 'cannon_unlock' }] },
-  { id: 'sniper_unlock', group: 'unlock', name: '破魔矢の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'sniper_unlock', group: 'unlock', name: '破魔矢の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'sniper_range', group: 'stat', name: '破魔矢の強化:射程', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'sniper_unlock' }] },
   { id: 'sniper_crit', group: 'stat', name: '破魔矢の強化:会心の一撃', maxTier: 3, costs: [20, 30, 45], requires: [{ id: 'sniper_unlock' }] },
   { id: 'sniper_boss', group: 'ability', name: '破魔矢の強化:ボス・中ボスへ特攻', maxTier: 1, costs: [30], requires: [{ id: 'sniper_unlock' }] },
-  { id: 'poison_unlock', group: 'unlock', name: '毒の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'poison_unlock', group: 'unlock', name: '毒の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'poison_power', group: 'stat', name: '毒の札の強化', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'poison_unlock' }] },
   { id: 'poison_spread', group: 'ability', name: '毒の強化:倒した敵から毒が感染する', maxTier: 1, costs: [35], requires: [{ id: 'poison_unlock' }] },
-  { id: 'thunder_unlock', group: 'unlock', name: '雷の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'thunder_unlock', group: 'unlock', name: '雷の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'thunder_power', group: 'stat', name: '雷の札の強化', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'thunder_unlock' }] },
   { id: 'thunder_chain', group: 'stat', name: '雷の強化:連鎖する数', maxTier: 3, costs: [20, 30, 45], requires: [{ id: 'thunder_unlock' }] },
-  { id: 'curse_unlock', group: 'unlock', name: '呪の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'curse_unlock', group: 'unlock', name: '呪の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'curse_power', group: 'stat', name: '呪の強化:呪いの重さ', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'curse_unlock' }] },
   { id: 'curse_long', group: 'ability', name: '呪の強化:呪いが長く続く', maxTier: 1, costs: [25], requires: [{ id: 'curse_unlock' }] },
-  { id: 'koban_unlock', group: 'unlock', name: '小判の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'koban_unlock', group: 'unlock', name: '小判の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'koban_amount', group: 'stat', name: '小判の強化:一度に生む額', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'koban_unlock' }] },
   { id: 'koban_rate', group: 'stat', name: '小判の強化:生む間隔', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'koban_unlock' }] },
-  { id: 'shiki_unlock', group: 'unlock', name: '式神の札を解放', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
+  { id: 'shiki_unlock', group: 'unlock', name: '式神の札を解放', maxTier: 1, costs: [1], currency: 'spirit', requires: [{ id: ADVANCED_GATE }] },
   { id: 'shiki_power', group: 'stat', name: '式神の強化:力と体力', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'shiki_unlock' }] },
   { id: 'shiki_count', group: 'ability', name: '式神の強化:同時に出せる数が増える', maxTier: 1, costs: [35], requires: [{ id: 'shiki_unlock' }] },
 
   // --- 特殊ノード(周回の遊び方そのものが変わる。御霊で解放する) ---
-  { id: 'extra_pick', group: 'special', name: '二刀流:毎ターン置ける札が1枚増える', maxTier: 1, costs: [3], currency: 'spirit', requires: [{ id: 'dmg_global', tier: 4 }] },
-  { id: 'extra_candidate', group: 'special', name: '目利き:候補の札が1枚増える', maxTier: 1, costs: [3], currency: 'spirit', requires: [{ id: 'currency_global', tier: 3 }] },
-  { id: 'lucky_drop', group: 'special', name: '福引:撃破時に低確率で通貨が5倍', maxTier: 1, costs: [3], currency: 'spirit', requires: [{ id: 'support_gold' }] },
-  { id: 'second_chance', group: 'special', name: '不退転:防衛失敗を周回中1度だけ跳ね返す', maxTier: 1, costs: [3], currency: 'spirit', requires: [{ id: 'earth_catch' }] },
-  { id: 'spirit_bonus', group: 'special', name: '御霊の導き:章ボスを倒すと御霊が+1', maxTier: 1, costs: [3], currency: 'spirit', requires: [{ id: 'basic_double_shot' }] },
+  { id: 'extra_pick', group: 'special', name: '二刀流:毎ターン置ける札が1枚増える', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: 'dmg_global', tier: 4 }] },
+  { id: 'extra_candidate', group: 'special', name: '目利き:候補の札が1枚増える', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: 'currency_global', tier: 3 }] },
+  { id: 'lucky_drop', group: 'special', name: '福引:撃破時に低確率で通貨が5倍', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: 'support_gold' }] },
+  { id: 'second_chance', group: 'special', name: '不退転:防衛失敗を周回中1度だけ跳ね返す', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: 'earth_catch' }] },
+  { id: 'spirit_bonus', group: 'special', name: '御霊の導き:章ボスを倒すと御霊が+1', maxTier: 1, costs: [2], currency: 'spirit', requires: [{ id: 'basic_double_shot' }] },
 
   // --- 風・氷それぞれの先(既存の「強化ノード」パターンを踏襲) ---
   { id: 'wind_dmg', group: 'stat', name: '風の札の強化', maxTier: 3, costs: [15, 25, 40], requires: [{ id: 'wind_unlock' }] },
@@ -99,6 +99,9 @@ export function buildNodeList() {
 }
 
 // ノードの支払いに使う通貨('currency'=通常の通貨 / 'spirit'=御霊)
+// 章ボスを倒した時にもらえる御霊。最初の1体で、入口(1)と最初の札(1)が開けられる量にしてある。
+export const SPIRIT_REWARD = { 1: 2, 2: 2, 3: 3 }
+
 export function nodeCurrency(node) {
   return node.currency ?? 'currency'
 }
@@ -142,6 +145,12 @@ export function computeVisibleNodeIds(skillState) {
       }
     }
     frontier = next
+  }
+  // 御霊で払うノードは、入口「？？？」を開けるまで見せない(見えても払えず、ノイズになるため)
+  if (getTier(skillState, ADVANCED_GATE) < 1) {
+    SKILL_NODES.forEach((n) => {
+      if (n.currency === 'spirit' && n.id !== ADVANCED_GATE) visible.delete(n.id)
+    })
   }
   return visible
 }

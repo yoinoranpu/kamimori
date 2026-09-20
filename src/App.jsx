@@ -11,7 +11,7 @@ import SettingsPanel from './components/SettingsPanel.jsx'
 import StartScreen from './components/StartScreen.jsx'
 import { createRunState, placeTower, startWave, startChapter } from './game/engine.js'
 import { drawCandidates } from './game/candidates.js'
-import { loadSkillState, saveSkillState, getEffects, unlockNode } from './game/skillTree.js'
+import { loadSkillState, saveSkillState, getEffects, unlockNode, SPIRIT_REWARD } from './game/skillTree.js'
 import { applyRelicEffects, pickRelicChoices, getFavoredOfuda, getRelic } from './game/relics.js'
 import { getChapter } from './game/chapters.js'
 import RelicChoiceScreen from './components/RelicChoiceScreen.jsx'
@@ -320,7 +320,7 @@ export default function App() {
     // 第1・2章のボスを倒したら、少し余韻を置いてから宝珠を選ぶ画面へ
     if (state.chapterCleared && !handledChapterRef.current) {
       handledChapterRef.current = true
-      runSpiritRef.current += state.chapter + (effects.spiritBonus ?? 0) // 章が深いほど多くもらえる(1・2・3)
+      runSpiritRef.current += (SPIRIT_REWARD[state.chapter] ?? state.chapter) + (effects.spiritBonus ?? 0) // 章が深いほど多くもらえる(1・2・3)
       playWaveClear()
       setTimeout(() => {
         const choices = pickRelicChoices(runRelics, effects.relicChoiceCount ?? 3, effects.unlockedOfuda)
@@ -355,7 +355,7 @@ export default function App() {
         else playDefeat()
       }
       const currencyEarned = state.currencyThisRun
-      if (state.outcome === 'cleared') runSpiritRef.current += state.chapter + (effects.spiritBonus ?? 0)
+      if (state.outcome === 'cleared') runSpiritRef.current += (SPIRIT_REWARD[state.chapter] ?? state.chapter) + (effects.spiritBonus ?? 0)
       const spiritEarned = runSpiritRef.current
       const nextSkillState = { ...skillState, currency: skillState.currency + currencyEarned, spirit: (skillState.spirit ?? 0) + spiritEarned }
       updateSkillState(nextSkillState)

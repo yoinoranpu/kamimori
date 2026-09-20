@@ -327,10 +327,13 @@ export default function SkillTreeScreen({ skillState, onUnlock, onStartRun, defa
           スキルツリー
         </h2>
         <div style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 4 }}>
-          <span style={{ color: '#c9a8ee', marginRight: 10, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-            <img src={ASSET_PATHS.iconSpirit} alt="" width={18} height={18} onError={(e) => (e.target.style.display = 'none')} />
-            御霊: {skillState.spirit ?? 0}
-          </span>
+          {/* 御霊は、手に入れるか入口を開けるまで見せない */}
+          {((skillState.spirit ?? 0) > 0 || getTier(skillState, ADVANCED_GATE) > 0) && (
+            <span style={{ color: '#c9a8ee', marginRight: 10, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+              <img src={ASSET_PATHS.iconSpirit} alt="" width={18} height={18} onError={(e) => (e.target.style.display = 'none')} />
+              御霊: {skillState.spirit ?? 0}
+            </span>
+          )}
           所持通貨: {skillState.currency}
           <img
             src={ASSET_PATHS.iconCoin}

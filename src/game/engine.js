@@ -197,6 +197,7 @@ function spawnEnemy(state, typeId, xOverride, yOverride, hpMult = 1) {
     lastDir: { dx: 1, dy: 0 },
     avoidWallId: null,
     avoidDir: null,
+    avoidBlocked: false,
     hitFlash: 0, // 被弾した瞬間だけ光らせる演出用タイマー
     wobbleSeed: Math.random() * Math.PI * 2, // 個体ごとに紙が揺れる位相をずらす
     // ボス登場演出: この間は動かず、拡大縮小フェードインしながら画面が少し暗転する
@@ -210,6 +211,20 @@ function getWallSpan(wall) {
 
 // 自分より少し前方(WALL_DETECT_AHEAD以内)にあり、今の高さを塞いでいる壁を探す。
 // 遠くの壁は見えない=まだ気づかない、という局所的な索敵。
+// 壁を避ける向きを決める。壁の上下に「敵の体が通れるだけの隙間」があるほうだけを選ぶ。
+// (隙間が体より狭いのに「通れる」扱いにすると、壁を端ぎりぎりに置いても敵が細い隙間を
+// すり抜けてしまう。両側とも通れない時は、壁を壊して進む=blocked)
+function chooseAvoidDir(e, top, bottom) {
+  const need = ENEMY_TYPES[e.type].radius * 2 + 4
+  const upOk = top >= need
+  const downOk = FIELD.height - bottom >= need
+  const nearerUp = Math.abs(e.y - top) <= Math.abs(e.y - bottom)
+  if (upOk && downOk) return { dir: nearerUp ? -1 : 1, blocked: false }
+  if (upOk) return { dir: -1, blocked: false }
+  if (downOk) return { dir: 1, blocked: false }
+  return { dir: nearerUp ? -1 : 1, blocked: true }
+}
+
 function findBlockingWallAhead(towers, e) {
   let best = null
   let bestDist = Infinity
@@ -611,7 +626,7 @@ export function step(state, dt, skillEffects) {
             e.lastDir = { dx: 1, dy: 0 }
           } else {
             const atFieldEdge = e.avoidDir < 0 ? e.y <= 0 : e.y >= FIELD.height
-            if (atFieldEdge) {
+            if (e.avoidBlocked || atFieldEdge) {
               // 上にも下にも逃げ場がない=完全に塞がれている。壁を殴って突破を試みる
               wall.hp -= BASE_WALL_ATTACK_DPS * WALL_ATTACK_MULT * dt
             } else {
@@ -626,7 +641,9 @@ export function step(state, dt, skillEffects) {
         if (blocker) {
           const { top, bottom } = getWallSpan(blocker)
           e.avoidWallId = blocker.id
-          e.avoidDir = Math.abs(e.y - top) <= Math.abs(e.y - bottom) ? -1 : 1
+          const choice = chooseAvoidDir(e, top, bottom)
+          e.avoidDir = choice.dir
+          e.avoidBlocked = choice.blocked
           // 土の「最初の敵を捕らえる」: 壁に初めて接触した瞬間だけ発動する罠(残り回数制、
           // 宝珠「双牢」で1ターンあたりの回数が増える)
           if (effects.earthCatch && blocker.catchCharges > 0) {

@@ -20,7 +20,7 @@ import {
 import { getWaveComposition, getSpawnYRange } from './waves.js'
 import { getChapter } from './chapters.js'
 import { MAX_CHAPTER } from './constants.js'
-import { WALL_SPAN_PX } from './grid.js'
+import { WALL_SPAN_PX, WALL_EDGE_SNAP, snapWallY } from './grid.js'
 import { ASSET_PATHS, pickRandom } from './assets.js'
 
 let idSeq = 1
@@ -105,6 +105,9 @@ function affinityMult(def, kind, effects) {
 
 export function placeTower(state, x, y, typeId, skillEffects) {
   if (state.outcome) return false
+  // フィールドの外(画面遷移中のクリックなど)には置けない
+  if (!(x >= 0 && x <= FIELD.width && y >= 0 && y <= FIELD.height)) return false
+  if (OFUDA_TYPES[typeId]?.kind === 'wall') y = snapWallY(y) // 端に寄せた壁は、枠にぴったり付ける
   const tooClose = state.towers.some((t) => Math.hypot(t.x - x, t.y - y) < 36)
   if (tooClose) return false
   const def = OFUDA_TYPES[typeId]
@@ -215,7 +218,7 @@ function getWallSpan(wall) {
 // (隙間が体より狭いのに「通れる」扱いにすると、壁を端ぎりぎりに置いても敵が細い隙間を
 // すり抜けてしまう。両側とも通れない時は、壁を壊して進む=blocked)
 function chooseAvoidDir(e, top, bottom) {
-  const need = ENEMY_TYPES[e.type].radius * 2 + 4
+  const need = Math.max(ENEMY_TYPES[e.type].radius * 2 + 4, WALL_EDGE_SNAP)
   const upOk = top >= need
   const downOk = FIELD.height - bottom >= need
   const nearerUp = Math.abs(e.y - top) <= Math.abs(e.y - bottom)

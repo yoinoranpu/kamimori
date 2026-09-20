@@ -3,7 +3,7 @@ import { getChapter } from '../game/chapters.js'
 import { FIELD, OFUDA_TYPES, ENEMY_TYPES, BOSS_ENTRANCE_SECONDS } from '../game/constants.js'
 import { step } from '../game/engine.js'
 import { getSpawnYRange } from '../game/waves.js'
-import { WALL_SPAN_PX } from '../game/grid.js'
+import { WALL_SPAN_PX, snapWallY } from '../game/grid.js'
 import { ASSET_PATHS, getImage } from '../game/assets.js'
 import { playLaunch, playHit, playEnemyDeath } from '../game/sound.js'
 
@@ -223,9 +223,11 @@ function drawWall(ctx, x, y) {
   drawOfudaCard(ctx, 'earth', x, y)
 }
 
-function drawPlacementPreview(ctx, pos, typeId) {
-  if (!pos || !typeId) return
+function drawPlacementPreview(ctx, rawPos, typeId) {
+  if (!rawPos || !typeId) return
   const def = OFUDA_TYPES[typeId]
+  // 壁は端に寄せると枠にぴったり吸着するので、プレビューもその位置で見せる
+  const pos = def.kind === 'wall' ? { x: rawPos.x, y: snapWallY(rawPos.y) } : rawPos
   drawRangeRing(ctx, pos.x, pos.y, def, true)
   ctx.globalAlpha = 0.75
   if (def.kind === 'wall') {

@@ -29,7 +29,7 @@ function CardImage({ typeId, def, style }) {
       </div>
     )
   }
-  return <img src={ASSET_PATHS.ofudaCard[typeId]} alt={def.name} width={88} height={132} style={{ objectFit: 'contain', ...style }} onError={() => setFailed(true)} />
+  return <img src={ASSET_PATHS.ofudaCard[typeId]} alt={def.name} width={88} height={132} draggable={false} style={{ objectFit: 'contain', ...style }} onError={() => setFailed(true)} />
 }
 
 export default function CandidatePicker({ pickMax = CANDIDATE_PICK_MAX, candidates, armedIndex, placedIndices, onArm, onProceed, onCardPointerDown, guideMessage, placementError }) {
@@ -63,16 +63,7 @@ export default function CandidatePicker({ pickMax = CANDIDATE_PICK_MAX, candidat
               className="candidate-card"
               onClick={() => onArm(i)}
               disabled={disabled}
-              draggable={!disabled}
-              onDragStart={(e) => {
-                if (disabled) return
-                e.dataTransfer.setData('text/plain', String(i))
-                e.dataTransfer.effectAllowed = 'copy'
-                // カードの見た目の枠(ボタン全体)ではなく、札の絵だけをドラッグ画像にする
-                const imgEl = e.currentTarget.querySelector('img')
-                if (imgEl) e.dataTransfer.setDragImage(imgEl, imgEl.width / 2, imgEl.height / 2)
-                onArm(i)
-              }}
+              draggable={false}
               onPointerDown={(e) => {
                 if (disabled) return
                 onCardPointerDown(i, e)

@@ -192,7 +192,7 @@ export default function App() {
     setTurn(1)
     setCandidates(dealCandidates(null, 1, 1))
     setArmedIndex(null)
-    setPlacedIndices(new Set())
+    { placedRef.current = new Set(); setPlacedIndices(new Set()) }
     setWaveHud({ kills: 0, currency: 0, enemiesLeft: 0, waveCleared: false, outcome: null, currentBatch: -1, totalBatches: 0, chapterCleared: false })
     setSpeed(1)
     setScreen('select')
@@ -204,10 +204,15 @@ export default function App() {
     setArmedIndex(i)
   }
 
+  // 同じ札を素早く2回置けてしまわないよう、置いた札はstateの更新を待たずref側でも即座に記録する
+  const placedRef = useRef(new Set())
   const attemptPlace = (i, x, y) => {
+    if (placedRef.current.has(i) || placedRef.current.size >= pickMax) return
     const typeId = candidates[i]
+    if (!typeId) return
     const ok = placeTower(runStateRef.current, x, y, typeId, effects)
     if (ok) {
+      placedRef.current.add(i)
       setPlacedIndices((prev) => new Set(prev).add(i))
       setArmedIndex(null)
     } else {
@@ -226,32 +231,44 @@ export default function App() {
   // スマホ(タッチ)向けのドラッグ配置。HTML5のdraggable/dragstartはタッチでは発火しないため、
   // Pointer Eventsで自前にドラッグ→指を離した位置がcanvas上かどうかを判定して配置する。
   // マウスでのネイティブHTML5ドラッグ(CandidatePicker側)はそのまま残し、タッチの時だけこちらを使う。
+  // 札のドラッグ配置(マウス・タッチ・ペン共通)。ブラウザ標準のドラッグ&ドロップ(HTML5 DnD)は、
+  // ドラッグ中に元のボタンが無効化されると操作を受け付けなくなる(画面が固まったように見える)ことが
+  // あったため使わず、Pointer Eventsで自前に処理する。動かさずに離した場合は「選択だけ」する。
   const handleCardPointerDown = (i, e) => {
-    if (e.pointerType !== 'touch' || placedIndices.has(i)) return
-    e.preventDefault()
+    if (placedRef.current.has(i)) return
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    if (e.pointerType === 'touch') e.preventDefault()
     handleArm(i)
-    setDragGhost({ typeId: candidates[i], x: e.clientX, y: e.clientY })
+    const startX = e.clientX
+    const startY = e.clientY
+    let moved = false
 
     const handleMove = (moveEv) => {
-      setDragGhost((g) => (g ? { ...g, x: moveEv.clientX, y: moveEv.clientY } : g))
+      if (!moved && Math.hypot(moveEv.clientX - startX, moveEv.clientY - startY) < 8) return
+      moved = true
+      setDragGhost({ typeId: candidates[i], x: moveEv.clientX, y: moveEv.clientY })
     }
-    const handleUp = (upEv) => {
+    const stop = () => {
       window.removeEventListener('pointermove', handleMove)
       window.removeEventListener('pointerup', handleUp)
-      window.removeEventListener('pointercancel', handleUp)
+      window.removeEventListener('pointercancel', handleCancel)
       setDragGhost(null)
+    }
+    const handleCancel = () => stop()
+    const handleUp = (upEv) => {
+      stop()
+      if (!moved) return
       const el = document.elementFromPoint(upEv.clientX, upEv.clientY)
       const canvas = el && el.tagName === 'CANVAS' ? el : null
       if (canvas) {
         const rect = canvas.getBoundingClientRect()
-        const x = (upEv.clientX - rect.left) * (FIELD.width / rect.width)
-        const y = (upEv.clientY - rect.top) * (FIELD.height / rect.height)
-        attemptPlace(i, x, y)
+        if (rect.width < 1 || rect.height < 1) return
+        attemptPlace(i, (upEv.clientX - rect.left) * (FIELD.width / rect.width), (upEv.clientY - rect.top) * (FIELD.height / rect.height))
       }
     }
     window.addEventListener('pointermove', handleMove)
     window.addEventListener('pointerup', handleUp)
-    window.addEventListener('pointercancel', handleUp)
+    window.addEventListener('pointercancel', handleCancel)
   }
 
   const proceedToWave = () => {
@@ -267,7 +284,7 @@ export default function App() {
     setTurn(nextTurn)
     setCandidates(dealCandidates(getFavoredOfuda(runRelics), chapter, nextTurn))
     setArmedIndex(null)
-    setPlacedIndices(new Set())
+    { placedRef.current = new Set(); setPlacedIndices(new Set()) }
     setScreen('select')
     announceTurn(nextTurn)
   }
@@ -403,7 +420,7 @@ export default function App() {
     setTurn(1)
     setCandidates(dealCandidates(getFavoredOfuda(relicsNow), next, 1))
     setArmedIndex(null)
-    setPlacedIndices(new Set())
+    { placedRef.current = new Set(); setPlacedIndices(new Set()) }
     setWaveHud({ kills: state.kills, currency: state.currencyThisRun, enemiesLeft: 0, waveCleared: false, outcome: null, currentBatch: -1, totalBatches: 0, chapterCleared: false, milestoneCleared: false })
     setSpeed(1)
     setScreen('select')
@@ -423,7 +440,7 @@ export default function App() {
       setTurn(nextTurn)
       setCandidates(dealCandidates(getFavoredOfuda(nextRelics), chapter, nextTurn))
       setArmedIndex(null)
-      setPlacedIndices(new Set())
+      { placedRef.current = new Set(); setPlacedIndices(new Set()) }
       setScreen('select')
       announceTurn(nextTurn)
       return

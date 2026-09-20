@@ -11,3 +11,17 @@ const { cellSize } = FIELD
 // なってしまうため、1〜2個の壁で現実的に迂回・集約を強制できるよう幅広に取る。
 export const WALL_SPAN = 8
 export const WALL_SPAN_PX = WALL_SPAN * cellSize
+
+// プレイヤーには「壁を端に寄せた=枠にぴったり」と見えるので、壁の端がフィールドの端から
+// この距離以内なら、内部的にも端にぴったり付いた位置へ吸着させる(見た目と当たり判定を一致させる)。
+// 敵が通れる隙間の最小幅にも使う(これより狭い隙間は「塞がっている」とみなす)。
+export const WALL_EDGE_SNAP = 44
+
+export function snapWallY(y) {
+  const half = WALL_SPAN_PX / 2
+  const top = y - half
+  const bottom = y + half
+  if (top > 0 && top < WALL_EDGE_SNAP) return half
+  if (bottom < FIELD.height && FIELD.height - bottom < WALL_EDGE_SNAP) return FIELD.height - half
+  return y
+}

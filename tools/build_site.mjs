@@ -1,5 +1,5 @@
-// ホームページ(site/)を生成する。ネタバレを避けるため、2章以降・札・妖怪の詳細は載せていない
-// (画像とキャッチコピー、遊び方の概要だけ)。
+// ホームページ(site/)を生成する。ネタバレを避けるため、載せるのは序盤の札と第一章の敵・舞台だけ。
+// 2章以降は「？？？」で伏せる。名前や説明は src/game/constants.js から取るので、変えたら再デプロイで反映される。
 // 使い方: node tools/build_site.mjs <出力先フォルダ>
 import { mkdirSync, copyFileSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
@@ -9,8 +9,38 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const out = process.argv[2]
 if (!out) throw new Error('出力先フォルダを指定してください')
 
-const esc = (t) => String(t)
+const { OFUDA_TYPES, ENEMY_TYPES } = await import(pathToFileURL(join(root, 'src/game/constants.js')).href)
+
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 const A = 'play/assets'
+
+// 序盤に使える札だけ(応用編の札は伏せる)
+const BASIC_OFUDA = ['basic', 'fire', 'earth', 'wind', 'ice', 'support']
+const cards = BASIC_OFUDA.map((id, i) => {
+  const d = OFUDA_TYPES[id]
+  const tilt = ((i % 5) - 2) * 2.2
+  const src = id === 'basic' ? 'ofuda_basic' : `ofuda_${id}_kanzi`
+  return `<div class="card" style="--tilt:${tilt}deg"><img src="${A}/ofuda/${src}.webp" alt="${esc(d.name)}" loading="lazy" width="88" height="132"><b>${esc(d.name)}</b><span>${esc(d.flavor)}</span></div>`
+}).join('')
+
+// 第一章の敵だけ
+const YOKAI = [
+  ['wisp', '雑霊', '一撃で散る雑霊。群れで押し寄せてくる。'],
+  ['onibi', '鬼火', '基本の妖怪。数で押してくる。'],
+  ['oonyudo', '大入道', '硬くてゆっくり。倒せば大きな通貨。'],
+  ['kamaitachi', '鎌鼬', '速くて、お札を斬りつけてくる。'],
+  ['aramitama', '荒魂(ボス)', '荒ぶる魂。範囲攻撃と雑魚の召喚を使う。'],
+]
+const yokai = YOKAI.map(([id, label, text]) => {
+  const d = ENEMY_TYPES[id]
+  const file = d.isBoss ? `enemy_boss_${id}` : `enemy_${id}`
+  return `<div class="yo"><span class="chip${d.isBoss ? ' boss' : ''}">${d.isBoss ? '第一章ボス' : '第一章'}</span><img src="${A}/enemies/${file}.webp" alt="${esc(d.name)}" loading="lazy"><b>${esc(label)}</b><p>${esc(text)}</p></div>`
+}).join('')
+
+// 章: 第一章だけ見せて、あとは伏せる
+const chapters = `<article class="chapter" style="background-image:url('${A}/field/field_paper.webp')"><img class="boss" src="${A}/enemies/enemy_boss_aramitama.webp" alt="" loading="lazy"><h3>第一章</h3><p class="place">社の参道</p><p>鳥居から本殿へ続く参道。鬼火と大入道の行進を止め、荒魂に挑む。</p></article>
+<article class="chapter locked"><h3>第二章</h3><p class="place">？ ？ ？</p><p>先へ進んだ者だけが知る。</p></article>
+<article class="chapter locked"><h3>第三章</h3><p class="place">？ ？ ？</p><p>先へ進んだ者だけが知る。</p></article>`
 
 const petals = Array.from({ length: 14 }, (_, i) => {
   const left = (i * 7.3 + 3) % 100
@@ -40,7 +70,7 @@ const html = `<!doctype html>
 <body>
 <header class="nav"><div class="wrap">
   <a class="brand" href="#top">紙守り</a>
-  <ul><li><a href="#features">特徴</a></li><li><a href="#guide">案内役</a></li><li><a href="#howto">遊び方</a></li></ul>
+  <ul><li><a href="#features">特徴</a></li><li><a href="#ofuda">お札</a></li><li><a href="#chapters">三つの章</a></li><li><a href="#yokai">妖怪</a></li><li><a href="#howto">遊び方</a></li></ul>
   <a class="play" href="play/">遊ぶ</a>
 </div></header>
 
@@ -67,7 +97,31 @@ const html = `<!doctype html>
   </div>
 </div></section>
 
-<section id="guide"><div class="wrap">
+<section id="ofuda"><div class="wrap">
+  <h2>お札<small>OFUDA</small></h2>
+  <p class="lead">まずは、この六種から。遊び進めると、まだ見ぬ札が現れる。</p>
+  <div class="cards">
+${cards}
+  </div>
+</div></section>
+
+<section class="paper" id="chapters"><div class="wrap">
+  <h2>三つの章<small>CHAPTERS</small></h2>
+  <p class="lead">物語は三つの章。各章の最後には、強敵が待っている。</p>
+  <div class="chapters">
+${chapters}
+  </div>
+</div></section>
+
+<section id="yokai"><div class="wrap">
+  <h2>妖怪<small>YOKAI</small></h2>
+  <p class="lead">第一章に現れる妖怪たち。弱点や耐性は、案内役が教えてくれる。</p>
+  <div class="yokai">
+${yokai}
+  </div>
+</div></section>
+
+<section class="paper" id="guide"><div class="wrap">
   <h2>案内役<small>GUIDE</small></h2>
   <p class="lead">遊びの途中で、そっと声をかけてくれる。</p>
   <div class="guide">
@@ -76,10 +130,10 @@ const html = `<!doctype html>
   </div>
 </div></section>
 
-<section class="paper" id="howto"><div class="wrap">
+<section id="howto"><div class="wrap">
   <h2>遊び方<small>HOW TO PLAY</small></h2>
   <p class="lead">操作は、選んで、置いて、見守るだけ。</p>
-  <ol class="steps" style="color:var(--sumi)">
+  <ol class="steps">
     <li><div><b>札を選んで置く</b><p>毎ターン配られるお札から選び、フィールドの好きな場所へ。スマホは札をそのままドラッグして置ける。</p></div></li>
     <li><div><b>ウェーブを見守る</b><p>「ウェーブ開始」で妖怪が押し寄せる。本殿に着かれたら負け。壁で足止めして、射程に誘い込もう。</p></div></li>
     <li><div><b>通貨で強くなる</b><p>倒した妖怪から通貨が手に入る。スキルの木を育てて、次の周回へ。</p></div></li>

@@ -743,6 +743,7 @@ function draw(ctx, state, animTime, showRanges, hoverPos, previewTypeId) {
   const { width, height } = FIELD
   ctx.clearRect(0, 0, width, height)
   ctx.save()
+  try {
 
   const shake = state.screenShake
   if (shake && shake.timeLeft > 0) {
@@ -771,7 +772,13 @@ function draw(ctx, state, animTime, showRanges, hoverPos, previewTypeId) {
   drawAmbientPetals(ctx, animTime)
   // ラスボス(荒魂)戦の間だけ雨を降らせて、決戦の空気を出す
   if (state.enemies.some((e) => ENEMY_TYPES[e.type].isBoss)) drawBossRain(ctx, animTime)
-  ctx.restore()
+  } finally {
+    // 途中で例外が出ても保存スタックが溜まり続けないよう、必ず戻す(+ 半透明・点線の状態もリセット)
+    ctx.restore()
+    ctx.globalAlpha = 1
+    ctx.setLineDash([])
+    ctx.globalCompositeOperation = 'source-over'
+  }
 }
 
 export default function GameCanvas({ runStateRef, active, onCanvasClick, skillEffects, onFrame, previewTypeId, speed = 1 }) {
@@ -795,7 +802,21 @@ export default function GameCanvas({ runStateRef, active, onCanvasClick, skillEf
     let animTime = 0
     let raf
 
+    let reportedError = false
     const loop = (now) => {
+      // 1フレーム中に例外が出ても描画ループ自体は止めない(止まると画面がフリーズしたように見える)。
+      // 例外は最初の1回だけコンソールに出し、次のフレームからまた描画を試みる。
+      try {
+        frame(now)
+      } catch (err) {
+        if (!reportedError) {
+          reportedError = true
+          console.error('[GameCanvas] フレーム処理で例外:', err)
+        }
+      }
+      raf = requestAnimationFrame(loop)
+    }
+    const frame = (now) => {
       const dt = Math.min((now - lastTime) / 1000, 0.1)
       lastTime = now
       animTime += dt
@@ -827,8 +848,6 @@ export default function GameCanvas({ runStateRef, active, onCanvasClick, skillEf
       }
       draw(ctx, runStateRef.current, animTime, !active, hoverPosRef.current, previewTypeRef.current)
       if (onFrame) onFrame(runStateRef.current)
-
-      raf = requestAnimationFrame(loop)
     }
     raf = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(raf)
@@ -837,6 +856,8 @@ export default function GameCanvas({ runStateRef, active, onCanvasClick, skillEf
 
   const toFieldCoords = (ev) => {
     const rect = canvasRef.current.getBoundingClientRect()
+    // 画面遷移アニメ中などで幅が0だと座標がInfinity/NaNになり、描画が壊れるので無効扱いにする
+    if (rect.width < 1 || rect.height < 1) return { x: -9999, y: -9999 }
     const scaleX = FIELD.width / rect.width
     const scaleY = FIELD.height / rect.height
     return { x: (ev.clientX - rect.left) * scaleX, y: (ev.clientY - rect.top) * scaleY }

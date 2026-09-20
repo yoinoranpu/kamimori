@@ -527,25 +527,25 @@ export default function App() {
           {/* 再生速度・宝珠の一覧を1行にまとめる(行を増やすと画面が縦に伸びてスクロールが出るため)。
               速度ボタンはselect中も場所を確保したまま隠し、ウェーブ開始でキャンバスの位置がズレないようにする */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', minHeight: 28, marginBottom: 4, fontSize: 12 }}>
-            <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', visibility: screen === 'wave' ? 'visible' : 'hidden' }}>
-              <span style={{ fontSize: 13, opacity: 0.8 }}>再生速度:</span>
-            {[1, 2, 4].map((s) => {
-              // 2倍速はスキルツリー(序盤)、4倍速は応用編で解放する
-              const unlocked = s === 1 || (s === 2 && effects.speed2x) || (s === 4 && effects.speed4x)
-              return (
-                <button
-                  key={s}
-                  onClick={() => unlocked && setSpeed(s)}
-                  disabled={!unlocked}
-                  title={unlocked ? undefined : 'スキルツリーで解放できるよ'}
-                  className={`ofuda-button${speed === s ? ' ofuda-button--primary' : ''}`}
-                  style={{ padding: '4px 14px', fontSize: 13, opacity: unlocked ? 1 : 0.4, cursor: unlocked ? 'pointer' : 'not-allowed' }}
-                >
-                  {s}x
-                </button>
-              )
-            })}
-            </span>
+            {/* 解放していない速度は表示しない(1倍しか無い間は、この欄ごと出さない)。
+                select中も場所は確保したまま隠して、ウェーブ開始でキャンバスの位置がズレないようにする */}
+            {(effects.speed2x || effects.speed4x) && (
+              <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', visibility: screen === 'wave' ? 'visible' : 'hidden' }}>
+                <span style={{ fontSize: 13, opacity: 0.8 }}>再生速度:</span>
+                {[1, 2, 4]
+                  .filter((s) => s === 1 || (s === 2 && effects.speed2x) || (s === 4 && effects.speed4x))
+                  .map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSpeed(s)}
+                      className={`ofuda-button${speed === s ? ' ofuda-button--primary' : ''}`}
+                      style={{ padding: '4px 14px', fontSize: 13 }}
+                    >
+                      {s}x
+                    </button>
+                  ))}
+              </span>
+            )}
             <span style={{ opacity: 0.8, marginLeft: 6 }}>宝珠:</span>
             {runRelics.length === 0 ? (
               <span style={{ opacity: 0.55 }}>なし</span>

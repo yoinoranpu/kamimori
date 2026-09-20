@@ -112,3 +112,10 @@ footer a { text-decoration: underline; text-underline-offset: 3px; }
 .bubble { position: relative; max-width: 420px; background: #f5efe2; color: #2b241d; border: 1px solid #ddcfb2; border-radius: 14px; padding: 18px 22px; font-size: 16px; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); }
 .bubble::before { content: ''; position: absolute; left: -12px; top: 50%; margin-top: -10px; border: 10px solid transparent; border-right-color: #f5efe2; border-left: 0; }
 @media (max-width: 720px) { .bubble::before { left: 50%; top: -10px; margin-left: -10px; margin-top: 0; border: 10px solid transparent; border-bottom-color: #f5efe2; border-top: 0; } }
+
+/* 伏せた章 */
+.chapter.locked { background: repeating-linear-gradient(45deg, #241d17 0 14px, #2b241d 14px 28px); border-style: dashed; border-color: #6b5844; justify-content: center; text-align: center; align-items: center; }
+.chapter.locked::before { background: none; }
+.chapter.locked h3, .chapter.locked .place { opacity: 0.85; }
+.chapter.locked p:last-child { opacity: 0.6; }
+#yokai .yo, #yokai .yo b { color: var(--sumi); }

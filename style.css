@@ -1,0 +1,126 @@
+:root {
+  --sumi: #241d17;
+  --wood: #2b241d;
+  --wood-2: #1d1712;
+  --washi: #f3ecdc;
+  --shu: #b5362b;
+  --gold: #c9a23a;
+  --ai: #3d4a6b;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--wood) url('play/assets/ui/ui_page_background.webp') center / 420px repeat;
+  color: var(--washi);
+  font-family: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+  line-height: 1.85;
+  overflow-x: hidden;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+.wrap { width: min(1080px, 100% - 40px); margin: 0 auto; }
+
+/* ---- 上部ナビ ---- */
+.nav { position: sticky; top: 0; z-index: 20; background: rgba(29, 23, 18, 0.88); backdrop-filter: blur(6px); border-bottom: 1px solid #4a3b2c; }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; }
+.nav .brand { font-family: 'Yuji Syuku', serif; font-size: 22px; letter-spacing: 0.15em; text-decoration: none; }
+.nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+.nav ul a { text-decoration: none; opacity: 0.85; }
+.nav ul a:hover { opacity: 1; color: var(--gold); }
+.nav .play { background: var(--shu); color: #fff; padding: 6px 18px; border-radius: 4px; text-decoration: none; font-size: 14px; letter-spacing: 0.1em; }
+@media (max-width: 720px) { .nav ul { display: none; } }
+
+/* ---- ヒーロー ---- */
+.hero { position: relative; padding: 70px 0 90px; text-align: center; overflow: hidden; }
+.hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 30%, rgba(201, 162, 58, 0.16), transparent 60%), linear-gradient(to bottom, transparent 70%, var(--wood) 100%); pointer-events: none; }
+.hero .logo { position: relative; width: min(760px, 92%); margin: 0 auto; filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.55)); }
+/* ロゴ帯の白い部分(縦34〜77.5%)の中央に、筆文字の題字を重ねる(ゲーム内のタイトルと同じ配置) */
+.hero .logo .callig { position: absolute; left: 50%; top: 55.75%; height: 40%; width: auto; transform: translate(-50%, -50%); }
+.hero .tagline { position: relative; font-family: 'Yuji Syuku', serif; font-size: clamp(20px, 3.4vw, 30px); letter-spacing: 0.2em; margin: 34px 0 6px; }
+.hero .sub { position: relative; opacity: 0.8; margin: 0 auto 38px; max-width: 560px; padding: 0 16px; }
+.cta { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 260px; aspect-ratio: 1122 / 554; background: url('play/assets/ui/ui_button_frame.webp') center / 100% 100% no-repeat; font-family: 'Yuji Syuku', serif; font-size: 30px; letter-spacing: 0.3em; text-indent: 0.3em; color: #fff4dd; text-decoration: none; text-shadow: 0 2px 4px rgba(60, 30, 5, 0.6); transition: transform 0.2s; }
+.cta:hover { transform: translateY(-3px) rotate(-1deg); }
+.hero .links { position: relative; margin-top: 12px; font-size: 14px; opacity: 0.8; }
+.petal { position: absolute; top: -40px; width: 22px; opacity: 0.85; animation: fall linear infinite; pointer-events: none; }
+@keyframes fall { 0% { transform: translate3d(0, -40px, 0) rotate(0deg); } 100% { transform: translate3d(70px, 640px, 0) rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .petal { display: none; } .cta { transition: none; } }
+
+/* ---- セクション共通 ---- */
+section { padding: 72px 0; }
+section.paper { background: radial-gradient(ellipse at 50% 0%, #fbf6ea, transparent 70%), var(--washi); color: var(--sumi); position: relative; }
+section.paper::before, section.paper::after { content: ''; position: absolute; left: 0; right: 0; height: 12px; background: repeating-linear-gradient(90deg, var(--shu) 0 24px, var(--washi) 24px 48px); opacity: 0.85; }
+section.paper::before { top: 0; }
+section.paper::after { bottom: 0; }
+h2 { font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: clamp(28px, 4.4vw, 40px); letter-spacing: 0.25em; text-align: center; margin: 0 0 8px; }
+h2 small { display: block; font-family: 'Shippori Mincho', serif; font-size: 13px; letter-spacing: 0.4em; opacity: 0.6; margin-top: 4px; }
+.lead { text-align: center; max-width: 640px; margin: 14px auto 44px; opacity: 0.85; }
+.paper .lead { opacity: 0.75; }
+
+/* ---- 特徴 ---- */
+.features { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 26px 22px; }
+.feature { border: 1px solid #b9a986; background: rgba(255, 252, 244, 0.6); padding: 26px 22px; position: relative; }
+.feature .no { position: absolute; top: -14px; left: 16px; background: var(--shu); color: #fff; font-family: 'Yuji Syuku', serif; padding: 0 12px; font-size: 15px; letter-spacing: 0.1em; }
+.feature h3 { font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: 22px; letter-spacing: 0.12em; margin: 6px 0 8px; }
+.feature p { margin: 0; font-size: 15px; color: #4a3d2e; }
+
+/* ---- 札 ---- */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 30px 18px; }
+.card { text-align: center; }
+.card img { width: 88px; margin: 0 auto 8px; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5)); transition: transform 0.25s; transform: rotate(var(--tilt, 0deg)); }
+.card:hover img { transform: translateY(-8px) rotate(0deg) scale(1.06); }
+.card b { display: block; font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: 19px; letter-spacing: 0.1em; }
+.card span { display: block; font-size: 12.5px; line-height: 1.6; opacity: 0.75; margin-top: 4px; }
+.card em { font-style: normal; font-size: 11px; color: var(--gold); letter-spacing: 0.15em; }
+@media (prefers-reduced-motion: reduce) { .card img { transition: none; } }
+
+/* ---- 章 ---- */
+.chapters { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 24px; }
+.chapter { position: relative; min-height: 320px; border: 3px solid #5b4636; border-radius: 6px; overflow: hidden; background-size: cover; background-position: center; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; padding: 22px; box-shadow: 0 10px 24px rgba(0, 0, 0, 0.5); }
+.chapter::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(20, 14, 10, 0.92) 8%, rgba(20, 14, 10, 0.15) 65%); }
+.chapter > * { position: relative; }
+.chapter .boss { position: absolute; right: 10px; top: 10px; width: 150px; filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.6)); }
+.chapter h3 { font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: 26px; letter-spacing: 0.2em; margin: 0; }
+.chapter .place { font-size: 13px; letter-spacing: 0.3em; opacity: 0.8; margin: 0 0 8px; }
+.chapter p { margin: 0; font-size: 14.5px; opacity: 0.92; }
+
+/* ---- 妖怪 ---- */
+.yokai { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px 16px; }
+.yo { background: #efe6d0; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35); color: var(--sumi); border: 1px solid #b9a986; padding: 30px 12px 14px; text-align: center; position: relative; }
+.yo img { height: 110px; width: auto; margin: 0 auto 8px; filter: drop-shadow(0 5px 6px rgba(60, 40, 20, 0.35)); }
+.yo b { font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: 19px; letter-spacing: 0.12em; }
+.yo .chip { position: absolute; top: 8px; left: 8px; font-size: 11px; background: var(--ai); color: #fff; padding: 0 8px; border-radius: 2px; letter-spacing: 0.1em; }
+.yo .chip.boss { background: var(--shu); }
+.yo p { margin: 4px 0 0; font-size: 12.5px; line-height: 1.6; color: #4a3d2e; }
+
+/* ---- 遊び方 ---- */
+.steps { counter-reset: s; list-style: none; padding: 0; margin: 0 auto; max-width: 720px; display: grid; gap: 22px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 54px 1fr; gap: 16px; align-items: start; }
+.steps li::before { content: counter(s); font-family: 'Yuji Syuku', serif; font-size: 28px; width: 54px; height: 54px; border: 2px solid var(--gold); color: var(--gold); display: grid; place-items: center; border-radius: 50%; }
+.steps b { font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: 20px; letter-spacing: 0.1em; }
+.steps p { margin: 2px 0 0; opacity: 0.85; font-size: 15px; }
+
+/* ---- フッター ---- */
+footer { padding: 54px 0 60px; text-align: center; background: var(--wood-2); border-top: 1px solid #4a3b2c; }
+footer .cta { width: 220px; font-size: 26px; }
+footer p { opacity: 0.6; font-size: 13px; margin: 22px 0 0; }
+footer a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- 案内役 ---- */
+.guide { display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap; }
+.guide img { width: 200px; filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55)); }
+.bubble { position: relative; max-width: 420px; background: #f5efe2; color: #2b241d; border: 1px solid #ddcfb2; border-radius: 14px; padding: 18px 22px; font-size: 16px; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); }
+.bubble::before { content: ''; position: absolute; left: -12px; top: 50%; margin-top: -10px; border: 10px solid transparent; border-right-color: #f5efe2; border-left: 0; }
+@media (max-width: 720px) { .bubble::before { left: 50%; top: -10px; margin-left: -10px; margin-top: 0; border: 10px solid transparent; border-bottom-color: #f5efe2; border-top: 0; } }
+
+/* 伏せた章 */
+.chapter.locked { background: repeating-linear-gradient(45deg, #241d17 0 14px, #2b241d 14px 28px); border-style: dashed; border-color: #6b5844; justify-content: center; text-align: center; align-items: center; }
+.chapter.locked::before { background: none; }
+.chapter.locked h3, .chapter.locked .place { opacity: 0.85; }
+.chapter.locked p:last-child { opacity: 0.6; }
+#yokai .yo, #yokai .yo b { color: var(--sumi); }
+
+/* ---- 権利・プライバシー ---- */
+.legal { max-width: 720px; margin: 34px auto 0; padding: 0 20px; text-align: left; font-size: 12.5px; line-height: 1.8; opacity: 0.75; }
+.legal h3 { font-family: 'Yuji Syuku', serif; font-weight: 400; font-size: 16px; letter-spacing: 0.15em; text-align: center; margin: 0 0 8px; }
+.legal p { margin: 6px 0; opacity: 1; font-size: 12.5px; }

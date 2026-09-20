@@ -7,7 +7,7 @@ import TurnAnnouncement from './components/TurnAnnouncement.jsx'
 import LoadingScreen from './components/LoadingScreen.jsx'
 import { describeWave, armedHint, waveHasWard } from './game/briefing.js'
 import { isTutorialDone, markTutorialDone, resetTutorial, tutorialSelectMessage, TREE_FIRST_MESSAGE } from './game/tutorial.js'
-import SaveManager from './components/SaveManager.jsx'
+import SettingsPanel from './components/SettingsPanel.jsx'
 import { createRunState, placeTower, startWave, startChapter } from './game/engine.js'
 import { drawCandidates } from './game/candidates.js'
 import { loadSkillState, saveSkillState, getEffects, unlockNode } from './game/skillTree.js'
@@ -99,6 +99,7 @@ export default function App() {
   // その周回で章ボスを倒して得た御霊(周回の終わりにまとめて所持へ加算する)
   const runSpiritRef = useRef(0)
   const [muted, setMutedState] = useState(() => isMuted())
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [tutorialDone, setTutorialDone] = useState(() => isTutorialDone())
   const finishTutorial = () => {
     markTutorialDone()
@@ -464,15 +465,6 @@ export default function App() {
             onStartRun={startRun}
             defaultMessage={!tutorialDone && skillState.currency === 0 && Object.keys(skillState.nodeTiers).length <= 1 ? TREE_FIRST_MESSAGE : undefined}
           />
-          <SaveManager
-            skillState={skillState}
-            onReplace={(next) => updateSkillState(next)}
-            onReset={() => {
-              updateSkillState({ currency: 0, spirit: 0, nodeTiers: { root: 1 } })
-              resetTutorial()
-              setTutorialDone(false)
-            }}
-          />
         </div>
       )}
 
@@ -532,7 +524,7 @@ export default function App() {
             <span className="hud-stat hud-stat--enemies">残敵: {waveHud.enemiesLeft}</span>
           </div>
 
-          {/* 再生速度・宝珠の一覧・撤退を1行にまとめる(行を増やすと画面が縦に伸びてスクロールが出るため)。
+          {/* 再生速度・宝珠の一覧を1行にまとめる(行を増やすと画面が縦に伸びてスクロールが出るため)。
               速度ボタンはselect中も場所を確保したまま隠し、ウェーブ開始でキャンバスの位置がズレないようにする */}
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', minHeight: 28, marginBottom: 4, fontSize: 12 }}>
             <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', visibility: screen === 'wave' ? 'visible' : 'hidden' }}>
@@ -573,18 +565,11 @@ export default function App() {
                 )
               })
             )}
-            <button
-              onClick={handleRetire}
-              className="ofuda-button"
-              style={{ marginLeft: 'auto', padding: '2px 12px', fontSize: 12, opacity: retireArmed ? 1 : 0.7 }}
-            >
-              {retireArmed ? '本当に撤退する?' : '撤退'}
-            </button>
           </div>
 
           <GameCanvas
             runStateRef={runStateRef}
-            active={screen === 'wave'}
+            active={screen === 'wave' && !settingsOpen}
             onCanvasClick={screen === 'select' ? handleCanvasClickDuringSelect : null}
             skillEffects={effects}
             onFrame={screen === 'wave' ? handleFrame : undefined}
@@ -649,16 +634,37 @@ export default function App() {
       )}
 
       <button
-        onClick={() => {
+        onClick={() => setSettingsOpen(true)}
+        className="ofuda-button"
+        style={{ position: 'fixed', top: 8, right: 8, zIndex: 900, padding: '3px 12px', fontSize: 12, opacity: 0.85 }}
+        aria-label="設定を開く"
+      >
+        設定
+      </button>
+      <SettingsPanel
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        muted={muted}
+        onToggleMute={() => {
           setMuted(!muted)
           setMutedState(!muted)
         }}
-        className="ofuda-button"
-        style={{ position: 'fixed', top: 8, right: 8, zIndex: 900, padding: '3px 10px', fontSize: 11, opacity: 0.85 }}
-        aria-label="効果音のオン/オフ"
-      >
-        音: {muted ? 'OFF' : 'ON'}
-      </button>
+        inRun={screen === 'select' || screen === 'wave'}
+        retireArmed={retireArmed}
+        onRetire={() => {
+          if (retireArmed) setSettingsOpen(false)
+          handleRetire()
+        }}
+        saveProps={{
+          skillState,
+          onReplace: (next) => updateSkillState(next),
+          onReset: () => {
+            updateSkillState({ currency: 0, spirit: 0, nodeTiers: { root: 1 } })
+            resetTutorial()
+            setTutorialDone(false)
+          },
+        }}
+      />
 
       {turnAnnounce && <TurnAnnouncement key={turnAnnounce.seq} turn={turnAnnounce.turn} chapterTitle={turnAnnounce.chapterTitle} />}
 

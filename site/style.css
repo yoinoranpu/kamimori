@@ -105,3 +105,10 @@ footer { padding: 54px 0 60px; text-align: center; background: var(--wood-2); bo
 footer .cta { width: 220px; font-size: 26px; }
 footer p { opacity: 0.6; font-size: 13px; margin: 22px 0 0; }
 footer a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---- 案内役 ---- */
+.guide { display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap; }
+.guide img { width: 200px; filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.55)); }
+.bubble { position: relative; max-width: 420px; background: #f5efe2; color: #2b241d; border: 1px solid #ddcfb2; border-radius: 14px; padding: 18px 22px; font-size: 16px; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); }
+.bubble::before { content: ''; position: absolute; left: -12px; top: 50%; margin-top: -10px; border: 10px solid transparent; border-right-color: #f5efe2; border-left: 0; }
+@media (max-width: 720px) { .bubble::before { left: 50%; top: -10px; margin-left: -10px; margin-top: 0; border: 10px solid transparent; border-bottom-color: #f5efe2; border-top: 0; } }

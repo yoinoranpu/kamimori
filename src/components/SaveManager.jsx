@@ -17,8 +17,9 @@ function decode(code) {
   }
 }
 
-export default function SaveManager({ skillState, onReplace, onReset }) {
-  const [open, setOpen] = useState(false)
+export default function SaveManager({ skillState, onReplace, onReset, embedded = false }) {
+  const [openState, setOpen] = useState(false)
+  const open = embedded || openState
   const [code, setCode] = useState('')
   const [note, setNote] = useState('')
   const [resetArmed, setResetArmed] = useState(false)
@@ -57,9 +58,11 @@ export default function SaveManager({ skillState, onReplace, onReset }) {
 
   return (
     <div style={{ marginTop: 10, fontSize: 12 }}>
-      <button onClick={() => setOpen((v) => !v)} className="ofuda-button" style={{ padding: '3px 12px', fontSize: 12, opacity: 0.8 }}>
-        セーブ管理 {open ? '▲' : '▼'}
-      </button>
+      {!embedded && (
+        <button onClick={() => setOpen((v) => !v)} className="ofuda-button" style={{ padding: '3px 12px', fontSize: 12, opacity: 0.8 }}>
+          セーブ管理 {open ? '▲' : '▼'}
+        </button>
+      )}
       {open && (
         <div style={{ marginTop: 8, padding: 10, border: '1px solid #5b4636', borderRadius: 8, background: 'rgba(0,0,0,0.3)' }}>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
